@@ -1,0 +1,40 @@
+# Build outputs
+bin/
+obj/
+publish/
+published/
+
+# Visual Studio files
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+.vs/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Executables
+*.exe
+*.dll
+*.pdb
+
+# Packages
+*.nupkg
+*.snupkg
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Invoice data files (optional - you might want to keep these)
+Invoices/*.xml
+
+# Temporary files
+*.tmp
+*.temp
