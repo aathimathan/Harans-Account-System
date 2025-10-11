@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <InvoiceNumber>INV-20251011-095937</InvoiceNumber>
+  <InvoiceDate>2025-10-11T09:59:37.2896118+05:30</InvoiceDate>
+  <Company>
+    <Name>NALLUR RESIDENCE</Name>
+    <Address>956 Point Pedro Rd, Nallur Jaffna</Address>
+    <Phone>077-244-6241</Phone>
+    <Email>harangovindaraj@gmail.com</Email>
+    <Logo />
+  </Company>
+  <Customer>
+    <Name />
+    <CompanyName />
+    <Address />
+    <Phone />
+    <Email />
+  </Customer>
+  <Items>
+    <Item>
+      <Description>Entire villa</Description>
+      <CheckIn>2025-10-11T09:59:37.286131</CheckIn>
+      <CheckOut>2025-10-12T09:59:37.2861328</CheckOut>
+      <NumberOfNights>1</NumberOfNights>
+      <PricePerNight>45000.00</PricePerNight>
+      <Total>45000.00</Total>
+    </Item>
+  </Items>
+  <Subtotal>45000.00</Subtotal>
+  <TaxRate>0.08</TaxRate>
+  <TaxAmount>3600.0000</TaxAmount>
+  <Other>0.00</Other>
+  <Total>48600.0000</Total>
+  <Paid>0.00</Paid>
+  <TotalDue>48600.0000</TotalDue>
+  <Advance>0.00</Advance>
+  <Notes />
+  <FileName>C:\Haran Invoice Software\bin\Debug\net8.0-windows\Invoices\Invoice_INV-20251011-095937_20251011.xml</FileName>
+</Invoice>

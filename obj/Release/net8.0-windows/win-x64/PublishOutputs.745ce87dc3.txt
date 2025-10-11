@@ -1,0 +1,7 @@
+C:\Haran Invoice Software\publish\HaranInvoiceSoftware.pdb
+C:\Haran Invoice Software\publish\D3DCompiler_47_cor3.dll
+C:\Haran Invoice Software\publish\PenImc_cor3.dll
+C:\Haran Invoice Software\publish\PresentationNative_cor3.dll
+C:\Haran Invoice Software\publish\vcruntime140_cor3.dll
+C:\Haran Invoice Software\publish\wpfgfx_cor3.dll
+C:\Haran Invoice Software\publish\HaranInvoiceSoftware.exe
