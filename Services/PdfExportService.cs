@@ -71,8 +71,12 @@ namespace HaranInvoiceSoftware.Services
         private void AddHeader(Document document, Company company)
         {
             // Create compact header table with logo and company info - adjusted proportions
-            var headerTable = new Table(new float[] { 1.2f, 2.8f }).UseAllAvailableWidth();
-            headerTable.SetMarginBottom(15);
+            var headerTable = new Table(new float[] { 1f, 3f }).UseAllAvailableWidth();
+            headerTable.SetMarginBottom(15)
+                       .SetPadding(0)
+                       .SetBorderCollapse(BorderCollapsePropertyValue.SEPARATE)
+                       .SetHorizontalBorderSpacing(0)
+                       .SetVerticalBorderSpacing(0);
             
             // Logo cell - smaller for A4 compactness
             var logoCell = new Cell();
@@ -84,15 +88,15 @@ namespace HaranInvoiceSoftware.Services
                 {
                     var logoData = ImageDataFactory.Create(logoPath);
                     var logo = new Image(logoData);
-                    logo.SetWidth(80);  // Reduced size for A4
-                    logo.SetHeight(100);
+                    logo.SetWidth(70);  // Further reduced size
+                    logo.SetHeight(85);
                     logoCell.Add(logo);
                 }
                 catch
                 {
                     // Fallback to text if image fails to load
-                    logoCell.Add(new Paragraph("NALLUR\nRESIDENCE")
-                        .SetFontSize(12)
+                    logoCell.Add(new Paragraph("NALLUR\nRESIDENCE\n(PVT) LTD")
+                        .SetFontSize(10)
                         .SetBold()
                         .SetTextAlignment(TextAlignment.CENTER));
                 }
@@ -100,22 +104,29 @@ namespace HaranInvoiceSoftware.Services
             else
             {
                 // Fallback when logo file doesn't exist
-                logoCell.Add(new Paragraph("NALLUR\nRESIDENCE")
-                    .SetFontSize(12)
+                logoCell.Add(new Paragraph("NALLUR\nRESIDENCE\n(PVT) LTD")
+                    .SetFontSize(10)
                     .SetBold()
                     .SetTextAlignment(TextAlignment.CENTER));
             }
             
             logoCell.SetBorder(Border.NO_BORDER)
-                   .SetVerticalAlignment(VerticalAlignment.MIDDLE)
-                   .SetTextAlignment(TextAlignment.CENTER);
+                   .SetVerticalAlignment(VerticalAlignment.TOP)
+                   .SetTextAlignment(TextAlignment.CENTER)
+                   .SetPadding(0);
             
             // Company details cell - compact layout with minimal spacing
             var companyInfoCell = new Cell()
                 .Add(new Paragraph(company.Name)
                     .SetFontSize(18)
                     .SetBold()
-                    .SetMarginBottom(3))
+                    .SetMarginTop(0)
+                    .SetMarginBottom(3)
+                    .SetPaddingTop(0))
+                .Add(new Paragraph($"Company Reg No: {company.RegistrationNumber}")
+                    .SetFontSize(8)
+                    .SetMarginBottom(2)
+                    .SetItalic())
                 .Add(new Paragraph(company.Address)
                     .SetFontSize(9)
                     .SetMarginBottom(2))
@@ -125,7 +136,8 @@ namespace HaranInvoiceSoftware.Services
                 .Add(new Paragraph($"Email: {company.Email}")
                     .SetFontSize(9))
                 .SetBorder(Border.NO_BORDER)
-                .SetVerticalAlignment(VerticalAlignment.MIDDLE)
+                .SetVerticalAlignment(VerticalAlignment.TOP)
+                .SetPadding(0)
                 .SetPaddingLeft(5);
             
             headerTable.AddCell(logoCell);

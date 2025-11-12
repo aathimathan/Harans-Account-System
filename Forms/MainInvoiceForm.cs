@@ -18,6 +18,8 @@ namespace HaranInvoiceSoftware.Forms
         private PdfExportService _pdfService;
         private DataTable _itemsTable;
         private DataTable _foodItemsTable;
+        private int _rightClickedRowIndex = -1;
+        private DataGridView _rightClickedGrid = null;
 
         public MainInvoiceForm()
         {
@@ -46,18 +48,24 @@ namespace HaranInvoiceSoftware.Forms
 
             dgvItems.DataSource = _itemsTable;
             dgvItems.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            
+
             // Style the DataGridView
             dgvItems.EnableHeadersVisualStyles = false;
             dgvItems.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(37, 42, 64);
             dgvItems.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvItems.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            dgvItems.RowHeadersDefaultCellStyle.BackColor = Color.FromArgb(45, 50, 72);
+            dgvItems.RowHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvItems.RowHeadersWidth = 30;
+            dgvItems.RowHeadersVisible = true;
             dgvItems.DefaultCellStyle.Font = new Font("Segoe UI", 10);
             dgvItems.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250);
-            dgvItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvItems.SelectionMode = DataGridViewSelectionMode.CellSelect;
             dgvItems.MultiSelect = false;
             dgvItems.AllowUserToAddRows = true;
             dgvItems.AllowUserToDeleteRows = true;
+            dgvItems.EditMode = DataGridViewEditMode.EditOnEnter;
+            dgvItems.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 
             // Set date column formats
             foreach (DataGridViewColumn column in dgvItems.Columns)
@@ -93,18 +101,24 @@ namespace HaranInvoiceSoftware.Forms
 
             dgvFoodItems.DataSource = _foodItemsTable;
             dgvFoodItems.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            
+
             // Style the DataGridView
             dgvFoodItems.EnableHeadersVisualStyles = false;
             dgvFoodItems.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(37, 42, 64);
             dgvFoodItems.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvFoodItems.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            dgvFoodItems.RowHeadersDefaultCellStyle.BackColor = Color.FromArgb(45, 50, 72);
+            dgvFoodItems.RowHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvFoodItems.RowHeadersWidth = 30;
+            dgvFoodItems.RowHeadersVisible = true;
             dgvFoodItems.DefaultCellStyle.Font = new Font("Segoe UI", 10);
             dgvFoodItems.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250);
-            dgvFoodItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvFoodItems.SelectionMode = DataGridViewSelectionMode.CellSelect;
             dgvFoodItems.MultiSelect = false;
             dgvFoodItems.AllowUserToAddRows = true;
             dgvFoodItems.AllowUserToDeleteRows = true;
+            dgvFoodItems.EditMode = DataGridViewEditMode.EditOnEnter;
+            dgvFoodItems.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 
             // Set price column format
             foreach (DataGridViewColumn column in dgvFoodItems.Columns)
@@ -140,7 +154,7 @@ namespace HaranInvoiceSoftware.Forms
                         break;
                     }
                 }
-                
+
                 if (foundPath != null)
                 {
                     pictureBoxLogo.Image = Image.FromFile(foundPath);
@@ -154,7 +168,7 @@ namespace HaranInvoiceSoftware.Forms
                     using (var g = Graphics.FromImage(placeholder))
                     {
                         g.FillRectangle(new SolidBrush(Color.FromArgb(100, 150, 200)), 0, 0, 120, 110);
-                        g.DrawString("LOGO\nNOT FOUND", new Font("Segoe UI", 9, FontStyle.Bold), Brushes.White, new RectangleF(0, 0, 120, 110), 
+                        g.DrawString("LOGO\nNOT FOUND", new Font("Segoe UI", 9, FontStyle.Bold), Brushes.White, new RectangleF(0, 0, 120, 110),
                             new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
                     }
                     pictureBoxLogo.Image = placeholder;
@@ -170,7 +184,7 @@ namespace HaranInvoiceSoftware.Forms
                 using (var g = Graphics.FromImage(errorPlaceholder))
                 {
                     g.FillRectangle(new SolidBrush(Color.FromArgb(200, 100, 100)), 0, 0, 120, 110);
-                    g.DrawString("LOGO\nERROR", new Font("Segoe UI", 9, FontStyle.Bold), Brushes.White, new RectangleF(0, 0, 120, 110), 
+                    g.DrawString("LOGO\nERROR", new Font("Segoe UI", 9, FontStyle.Bold), Brushes.White, new RectangleF(0, 0, 120, 110),
                         new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
                 }
                 pictureBoxLogo.Image = errorPlaceholder;
@@ -208,6 +222,7 @@ namespace HaranInvoiceSoftware.Forms
             dgvItems.CellDoubleClick += DgvItems_CellDoubleClick;
             dgvItems.CellEndEdit += DgvItems_CellEndEdit;
             dgvItems.CellFormatting += DgvItems_CellFormatting;
+            dgvItems.MouseClick += DgvItems_MouseClick;
 
             // Food DataGridView events
             dgvFoodItems.CellValueChanged += DgvFoodItems_CellValueChanged;
@@ -215,9 +230,15 @@ namespace HaranInvoiceSoftware.Forms
             dgvFoodItems.UserAddedRow += (s, e) => { CalculateTotals(); AutoSave(); };
             dgvFoodItems.UserDeletedRow += (s, e) => { CalculateTotals(); AutoSave(); };
             dgvFoodItems.CellFormatting += DgvFoodItems_CellFormatting;
+            dgvFoodItems.CellClick += DgvFoodItems_CellClick;
+            dgvFoodItems.MouseClick += DgvFoodItems_MouseClick;
+
+            // Setup context menus
+            SetupContextMenus();
         }
 
         private DateTimePicker _dateTimePicker;
+        private bool _isUpdatingDatePicker = false; // Flag to prevent recursive updates
 
         private void SetupDatePickerColumns()
         {
@@ -231,6 +252,33 @@ namespace HaranInvoiceSoftware.Forms
             dgvItems.Controls.Add(_dateTimePicker);
         }
 
+        private void SetupContextMenus()
+        {
+            // Create context menu for accommodation items
+            var contextMenuItems = new ContextMenuStrip();
+            var addItemMenuItem = new ToolStripMenuItem("Add New Row");
+            addItemMenuItem.Click += AddItemMenuItem_Click;
+            var deleteItemMenuItem = new ToolStripMenuItem("Delete Row");
+            deleteItemMenuItem.Click += DeleteItemMenuItem_Click;
+            contextMenuItems.Items.Add(addItemMenuItem);
+            contextMenuItems.Items.Add(new ToolStripSeparator());
+            contextMenuItems.Items.Add(deleteItemMenuItem);
+
+            // Create context menu for food items
+            var contextMenuFood = new ContextMenuStrip();
+            var addFoodMenuItem = new ToolStripMenuItem("Add New Food Item");
+            addFoodMenuItem.Click += AddFoodMenuItem_Click;
+            var deleteFoodMenuItem = new ToolStripMenuItem("Delete Food Item");
+            deleteFoodMenuItem.Click += DeleteFoodMenuItem_Click;
+            contextMenuFood.Items.Add(addFoodMenuItem);
+            contextMenuFood.Items.Add(new ToolStripSeparator());
+            contextMenuFood.Items.Add(deleteFoodMenuItem);
+
+            // Store context menus for later use
+            dgvItems.Tag = contextMenuItems;
+            dgvFoodItems.Tag = contextMenuFood;
+        }
+
         private void DateTimePicker_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
@@ -242,13 +290,13 @@ namespace HaranInvoiceSoftware.Forms
             {
                 _dateTimePicker.Visible = false;
                 dgvItems.Focus();
-                
+
                 // Move to next cell if Tab was pressed
                 if (e.KeyCode == Keys.Tab && dgvItems.CurrentCell != null)
                 {
                     int nextColumn = dgvItems.CurrentCell.ColumnIndex + 1;
                     int currentRow = dgvItems.CurrentCell.RowIndex;
-                    
+
                     if (nextColumn < dgvItems.Columns.Count)
                     {
                         dgvItems.CurrentCell = dgvItems[nextColumn, currentRow];
@@ -266,21 +314,28 @@ namespace HaranInvoiceSoftware.Forms
                 int rowIndex = cellPosition.Y;
 
                 // Final update of DataTable
-                if (rowIndex < dgvItems.Rows.Count && columnIndex < dgvItems.Columns.Count && 
+                if (rowIndex < dgvItems.Rows.Count && columnIndex < dgvItems.Columns.Count &&
                     rowIndex < _itemsTable.Rows.Count)
                 {
                     var columnName = dgvItems.Columns[columnIndex].Name;
                     _itemsTable.Rows[rowIndex][columnName] = _dateTimePicker.Value;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"DateTimePicker leave: {columnName} = {_dateTimePicker.Value:yyyy-MM-dd}");
                 }
             }
-            
+
             _dateTimePicker.Visible = false;
         }
 
         private void DgvItems_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            // Switch back to cell select mode when a cell is clicked
+            if (dgvItems.SelectionMode == DataGridViewSelectionMode.FullRowSelect)
+            {
+                dgvItems.SelectionMode = DataGridViewSelectionMode.CellSelect;
+                dgvItems.MultiSelect = false;
+            }
+
             // Show date picker for Check In and Check Out columns
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
@@ -289,7 +344,150 @@ namespace HaranInvoiceSoftware.Forms
                 {
                     ShowDateTimePicker(e.RowIndex, e.ColumnIndex);
                 }
+                else
+                {
+                    // For non-date columns, enter edit mode immediately
+                    dgvItems.BeginEdit(false);
+                }
             }
+        }
+
+        private void DgvFoodItems_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Switch back to cell select mode when a cell is clicked
+            if (dgvFoodItems.SelectionMode == DataGridViewSelectionMode.FullRowSelect)
+            {
+                dgvFoodItems.SelectionMode = DataGridViewSelectionMode.CellSelect;
+                dgvFoodItems.MultiSelect = false;
+            }
+
+            // For food items grid, enter edit mode immediately on single click
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                dgvFoodItems.BeginEdit(false);
+            }
+        }
+
+        private void DgvItems_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Show context menu on right click
+            if (e.Button == MouseButtons.Right)
+            {
+                var hit = dgvItems.HitTest(e.X, e.Y);
+                if (hit.RowIndex >= 0 && !dgvItems.Rows[hit.RowIndex].IsNewRow)
+                {
+                    // Store the right-clicked row information
+                    _rightClickedRowIndex = hit.RowIndex;
+                    _rightClickedGrid = dgvItems;
+
+                    // Select the row
+                    dgvItems.ClearSelection();
+                    dgvItems.Rows[hit.RowIndex].Selected = true;
+
+                    // Show context menu
+                    var contextMenu = dgvItems.Tag as ContextMenuStrip;
+                    contextMenu?.Show(dgvItems, e.Location);
+                }
+            }
+        }
+
+        private void DgvFoodItems_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Show context menu on right click
+            if (e.Button == MouseButtons.Right)
+            {
+                var hit = dgvFoodItems.HitTest(e.X, e.Y);
+                if (hit.RowIndex >= 0 && !dgvFoodItems.Rows[hit.RowIndex].IsNewRow)
+                {
+                    // Store the right-clicked row information
+                    _rightClickedRowIndex = hit.RowIndex;
+                    _rightClickedGrid = dgvFoodItems;
+
+                    // Select the row
+                    dgvFoodItems.ClearSelection();
+                    dgvFoodItems.Rows[hit.RowIndex].Selected = true;
+
+                    // Show context menu
+                    var contextMenu = dgvFoodItems.Tag as ContextMenuStrip;
+                    contextMenu?.Show(dgvFoodItems, e.Location);
+                }
+            }
+        }
+
+        private void DeleteItemMenuItem_Click(object sender, EventArgs e)
+        {
+            // Delete the right-clicked row from accommodation items
+            if (_rightClickedGrid == dgvItems && _rightClickedRowIndex >= 0 && _rightClickedRowIndex < dgvItems.Rows.Count)
+            {
+                var row = dgvItems.Rows[_rightClickedRowIndex];
+                if (!row.IsNewRow)
+                {
+                    var result = MessageBox.Show("Are you sure you want to delete this accommodation item?",
+                        "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        dgvItems.Rows.RemoveAt(_rightClickedRowIndex);
+                        CalculateTotals();
+                        AutoSave();
+                    }
+                }
+            }
+
+            // Reset the stored values
+            _rightClickedRowIndex = -1;
+            _rightClickedGrid = null;
+        }
+
+        private void DeleteFoodMenuItem_Click(object sender, EventArgs e)
+        {
+            // Delete the right-clicked row from food items
+            if (_rightClickedGrid == dgvFoodItems && _rightClickedRowIndex >= 0 && _rightClickedRowIndex < dgvFoodItems.Rows.Count)
+            {
+                var row = dgvFoodItems.Rows[_rightClickedRowIndex];
+                if (!row.IsNewRow)
+                {
+                    var result = MessageBox.Show("Are you sure you want to delete this food item?",
+                        "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Deleting food item at row index: {_rightClickedRowIndex}");
+                        dgvFoodItems.Rows.RemoveAt(_rightClickedRowIndex);
+                        CalculateTotals();
+                        AutoSave();
+                        System.Diagnostics.Debug.WriteLine("Food item deleted successfully");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Cannot delete new row");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid deletion attempt - Grid: {_rightClickedGrid?.Name}, RowIndex: {_rightClickedRowIndex}");
+            }
+
+            // Reset the stored values
+            _rightClickedRowIndex = -1;
+            _rightClickedGrid = null;
+        }
+
+        private void AddItemMenuItem_Click(object sender, EventArgs e)
+        {
+            // Add a new row to accommodation items
+            _itemsTable.Rows.Add("Entire villa", DateTime.Now, DateTime.Now.AddDays(1), 1, 45000.00m, 45000.00m);
+            CalculateTotals();
+            AutoSave();
+        }
+
+        private void AddFoodMenuItem_Click(object sender, EventArgs e)
+        {
+            // Add a new row to food items
+            _foodItemsTable.Rows.Add("", "", 0.00m);
+            CalculateTotals();
+            AutoSave();
         }
 
         private void DgvItems_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -334,7 +532,7 @@ namespace HaranInvoiceSoftware.Forms
         private void ShowDateTimePicker(int rowIndex, int columnIndex)
         {
             Rectangle cellRect = dgvItems.GetCellDisplayRectangle(columnIndex, rowIndex, false);
-            
+
             // Get current cell value or use default
             DateTime currentValue = DateTime.Now;
             if (dgvItems[columnIndex, rowIndex].Value != null && dgvItems[columnIndex, rowIndex].Value != DBNull.Value)
@@ -345,31 +543,54 @@ namespace HaranInvoiceSoftware.Forms
                 }
             }
 
-            _dateTimePicker.Value = currentValue;
-            _dateTimePicker.Location = new Point(cellRect.X, cellRect.Y);
-            _dateTimePicker.Size = new Size(cellRect.Width, cellRect.Height);
-            _dateTimePicker.Tag = new Point(columnIndex, rowIndex); // Store cell position
+            // Set flag to prevent ValueChanged event when initializing
+            _isUpdatingDatePicker = true;
+            try
+            {
+                _dateTimePicker.Value = currentValue;
+                _dateTimePicker.Location = new Point(cellRect.X, cellRect.Y);
+                _dateTimePicker.Size = new Size(cellRect.Width, cellRect.Height);
+                _dateTimePicker.Tag = new Point(columnIndex, rowIndex); // Store cell position
+            }
+            finally
+            {
+                _isUpdatingDatePicker = false;
+            }
+
             _dateTimePicker.Visible = true;
             _dateTimePicker.Focus();
         }
 
         private void DateTimePicker_ValueChanged(object sender, EventArgs e)
         {
+            // Prevent recursive updates
+            if (_isUpdatingDatePicker) return;
+
             if (_dateTimePicker.Tag is Point cellPosition)
             {
                 int columnIndex = cellPosition.X;
                 int rowIndex = cellPosition.Y;
 
                 // Update the cell value and DataTable
-                if (rowIndex < dgvItems.Rows.Count && columnIndex < dgvItems.Columns.Count && 
+                if (rowIndex < dgvItems.Rows.Count && columnIndex < dgvItems.Columns.Count &&
                     rowIndex < _itemsTable.Rows.Count)
                 {
                     var columnName = dgvItems.Columns[columnIndex].Name;
-                    
-                    // Update the DataTable directly (this will trigger ItemsTable_ColumnChanged)
-                    _itemsTable.Rows[rowIndex][columnName] = _dateTimePicker.Value;
-                    
-                    System.Diagnostics.Debug.WriteLine($"DateTimePicker changed: {columnName} = {_dateTimePicker.Value:yyyy-MM-dd}");
+
+                    // Set flag to prevent recursive calls
+                    _isUpdatingDatePicker = true;
+
+                    try
+                    {
+                        // Update the DataTable directly (this will trigger ItemsTable_ColumnChanged)
+                        _itemsTable.Rows[rowIndex][columnName] = _dateTimePicker.Value;
+
+                        System.Diagnostics.Debug.WriteLine($"DateTimePicker changed: {columnName} = {_dateTimePicker.Value:yyyy-MM-dd}");
+                    }
+                    finally
+                    {
+                        _isUpdatingDatePicker = false;
+                    }
                 }
             }
         }
@@ -379,23 +600,23 @@ namespace HaranInvoiceSoftware.Forms
             if (e.RowIndex >= 0 && e.RowIndex < _itemsTable.Rows.Count)
             {
                 var row = _itemsTable.Rows[e.RowIndex];
-                
+
                 // Get column name to determine which field was changed
                 string columnName = "";
                 if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvItems.Columns.Count)
                 {
                     columnName = dgvItems.Columns[e.ColumnIndex].Name;
                 }
-                
+
                 // Calculate nights when either check-in or check-out date changes
-                if (columnName == "Check In" || columnName == "Check Out" || 
+                if (columnName == "Check In" || columnName == "Check Out" ||
                     (row["Check In"] != DBNull.Value && row["Check Out"] != DBNull.Value))
                 {
                     if (row["Check In"] != DBNull.Value && row["Check Out"] != DBNull.Value)
                     {
                         DateTime checkIn = (DateTime)row["Check In"];
                         DateTime checkOut = (DateTime)row["Check Out"];
-                        
+
                         // Ensure check-out is after check-in
                         if (checkOut <= checkIn)
                         {
@@ -404,11 +625,11 @@ namespace HaranInvoiceSoftware.Forms
                             // Update the DataGridView as well
                             dgvItems["Check Out", e.RowIndex].Value = checkOut;
                         }
-                        
+
                         int nights = (checkOut - checkIn).Days;
                         int calculatedNights = Math.Max(1, nights);
                         row["# of Nights"] = calculatedNights;
-                        
+
                         // Update the DataGridView display
                         dgvItems["# of Nights", e.RowIndex].Value = calculatedNights;
                     }
@@ -421,7 +642,7 @@ namespace HaranInvoiceSoftware.Forms
                     decimal pricePerNight = Convert.ToDecimal(row["Price / Night"]);
                     decimal total = nights * pricePerNight;
                     row["Total"] = total;
-                    
+
                     // Update the DataGridView display
                     dgvItems["Total", e.RowIndex].Value = total;
                 }
@@ -435,10 +656,10 @@ namespace HaranInvoiceSoftware.Forms
         {
             // This handles direct changes to the DataTable, which is what happens with data binding
             if (e.Row.RowState == DataRowState.Detached) return; // Skip detached rows
-            
+
             var row = e.Row;
             string columnName = e.Column.ColumnName;
-            
+
             // Calculate nights when either check-in or check-out date changes
             if (columnName == "Check In" || columnName == "Check Out")
             {
@@ -446,18 +667,29 @@ namespace HaranInvoiceSoftware.Forms
                 {
                     DateTime checkIn = (DateTime)row["Check In"];
                     DateTime checkOut = (DateTime)row["Check Out"];
-                    
+
                     // Ensure check-out is after check-in
                     if (checkOut <= checkIn)
                     {
-                        checkOut = checkIn.AddDays(1);
-                        row["Check Out"] = checkOut;
+                        // Temporarily remove event handler to prevent cascading
+                        _itemsTable.ColumnChanged -= ItemsTable_ColumnChanged;
+
+                        try
+                        {
+                            checkOut = checkIn.AddDays(1);
+                            row["Check Out"] = checkOut;
+                        }
+                        finally
+                        {
+                            // Re-add event handler
+                            _itemsTable.ColumnChanged += ItemsTable_ColumnChanged;
+                        }
                     }
-                    
+
                     int nights = (checkOut - checkIn).Days;
                     int calculatedNights = Math.Max(1, nights);
                     row["# of Nights"] = calculatedNights;
-                    
+
                     // Debug output
                     System.Diagnostics.Debug.WriteLine($"Calculated nights: {calculatedNights} for dates {checkIn:yyyy-MM-dd} to {checkOut:yyyy-MM-dd}");
                 }
@@ -471,7 +703,7 @@ namespace HaranInvoiceSoftware.Forms
                 decimal pricePerNight = Convert.ToDecimal(row["Price / Night"]);
                 decimal total = nights * pricePerNight;
                 row["Total"] = total;
-                
+
                 // Debug output
                 System.Diagnostics.Debug.WriteLine($"Calculated total: {total} for {nights} nights at {pricePerNight}");
             }
@@ -484,7 +716,7 @@ namespace HaranInvoiceSoftware.Forms
         {
             // This handles direct changes to the food items DataTable
             if (e.Row.RowState == DataRowState.Detached) return; // Skip detached rows
-            
+
             // When any food item changes, recalculate totals
             CalculateTotals();
             AutoSave();
@@ -528,12 +760,23 @@ namespace HaranInvoiceSoftware.Forms
             try
             {
                 _currentInvoice = _dataService.LoadLastInvoice();
+                UpdateCompanyInfo(); // Ensure company info is current
                 PopulateForm();
             }
             catch
             {
                 _currentInvoice = new Invoice();
+                UpdateCompanyInfo(); // Ensure company info is current
                 PopulateForm();
+            }
+        }
+
+        private void UpdateCompanyInfo()
+        {
+            // Ensure the company information is always current
+            if (_currentInvoice != null)
+            {
+                _currentInvoice.Company = new Company();
             }
         }
 
@@ -611,8 +854,8 @@ namespace HaranInvoiceSoftware.Forms
             _currentInvoice.Items.Clear();
             foreach (DataRow row in _itemsTable.Rows)
             {
-                if (row.RowState != DataRowState.Deleted && 
-                    row["Description"] != DBNull.Value && 
+                if (row.RowState != DataRowState.Deleted &&
+                    row["Description"] != DBNull.Value &&
                     !string.IsNullOrEmpty(row["Description"].ToString()))
                 {
                     var item = new InvoiceItem
@@ -632,8 +875,8 @@ namespace HaranInvoiceSoftware.Forms
             _currentInvoice.FoodItems.Clear();
             foreach (DataRow row in _foodItemsTable.Rows)
             {
-                if (row.RowState != DataRowState.Deleted && 
-                    row["Description"] != DBNull.Value && 
+                if (row.RowState != DataRowState.Deleted &&
+                    row["Description"] != DBNull.Value &&
                     !string.IsNullOrEmpty(row["Description"].ToString()))
                 {
                     var foodItem = new FoodItem
@@ -689,7 +932,7 @@ namespace HaranInvoiceSoftware.Forms
 
             decimal.TryParse(txtTaxRate.Text, out decimal taxRatePercent);
             decimal taxRate = taxRatePercent / 100.0m; // Convert percentage to decimal
-            
+
             decimal.TryParse(txtOther.Text, out decimal other);
             decimal.TryParse(txtPaid.Text, out decimal paid);
             decimal.TryParse(txtAdvance.Text, out decimal advance);
@@ -727,12 +970,13 @@ namespace HaranInvoiceSoftware.Forms
             }
 
             _currentInvoice = new Invoice();
+            UpdateCompanyInfo(); // Ensure company info is current
             _itemsTable.Clear();
             AddEmptyRow();
-            
+
             // Generate automatic invoice number based on datetime with seconds
             string invoiceNumber = GenerateInvoiceNumber();
-            
+
             // Clear form fields
             txtCustomerName.Clear();
             txtCompanyName.Clear();
@@ -746,17 +990,17 @@ namespace HaranInvoiceSoftware.Forms
             txtAdvance.Text = "0.00";
             txtNotes.Clear();
             dtpInvoiceDate.Value = DateTime.Now;
-            
+
             // Clear calculated totals
             txtSubtotal.Text = CurrencyHelper.FormatSriLankanRupees(0);
             txtTaxes.Text = CurrencyHelper.FormatSriLankanRupees(0);
             txtTotal.Text = CurrencyHelper.FormatSriLankanRupees(0);
             txtTotalDue.Text = CurrencyHelper.FormatSriLankanRupees(0);
-            
+
             // Set the filename for this invoice
             _currentInvoice.InvoiceNumber = invoiceNumber;
             _currentInvoice.FileName = fileName;
-            
+
             CalculateTotals();
         }
 
@@ -766,12 +1010,13 @@ namespace HaranInvoiceSoftware.Forms
             {
                 dialog.Filter = "XML files (*.xml)|*.xml";
                 dialog.InitialDirectory = System.IO.Path.Combine(Application.StartupPath, "Invoices");
-                
+
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
                         _currentInvoice = _dataService.LoadInvoice(dialog.FileName);
+                        UpdateCompanyInfo(); // Ensure company info is current
                         PopulateForm();
                         MessageBox.Show("Invoice loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -804,7 +1049,7 @@ namespace HaranInvoiceSoftware.Forms
                 dialog.Filter = "PDF files (*.pdf)|*.pdf";
                 dialog.DefaultExt = "pdf";
                 dialog.FileName = $"Invoice_{_currentInvoice.InvoiceNumber}_{DateTime.Now:yyyyMMdd}.pdf";
-                
+
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
@@ -812,7 +1057,7 @@ namespace HaranInvoiceSoftware.Forms
                         UpdateInvoiceFromForm();
                         _pdfService.ExportToPdf(_currentInvoice, dialog.FileName);
                         MessageBox.Show("PDF exported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        
+
                         // Ask if user wants to open the PDF
                         if (MessageBox.Show("Would you like to open the PDF file?", "Open PDF", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         {
@@ -847,16 +1092,16 @@ namespace HaranInvoiceSoftware.Forms
                 dialog.DefaultExt = "xml";
                 dialog.Title = "Save New Invoice As";
                 dialog.InitialDirectory = System.IO.Path.Combine(Application.StartupPath, "Invoices");
-                
+
                 // Suggest a filename based on current datetime
                 string suggestedName = $"Invoice_{DateTime.Now:yyyyMMdd_HHmmss}";
                 dialog.FileName = suggestedName;
-                
+
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     return dialog.FileName;
                 }
-                
+
                 return string.Empty; // User cancelled
             }
         }

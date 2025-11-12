@@ -107,7 +107,7 @@ namespace HaranInvoiceSoftware.Forms
             this.lblCompanyName.Name = "lblCompanyName";
             this.lblCompanyName.Size = new System.Drawing.Size(261, 37);
             this.lblCompanyName.TabIndex = 0;
-            this.lblCompanyName.Text = "NALLUR RESIDENCE";
+            this.lblCompanyName.Text = "NALLUR RESIDENCE (PVT) LTD";
             // 
             // lblCompanyAddress
             // 
@@ -190,16 +190,16 @@ namespace HaranInvoiceSoftware.Forms
             this.dtpInvoiceDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpInvoiceDate.Location = new System.Drawing.Point(1160, 22);
             this.dtpInvoiceDate.Name = "dtpInvoiceDate";
-            this.dtpInvoiceDate.Size = new System.Drawing.Size(170, 29);
-            this.dtpInvoiceDate.TabIndex = 7;
+            this.dtpInvoiceDate.Size = new System.Drawing.Size(210, 29);
+            this.dtpInvoiceDate.TabIndex = 1;
             // 
             // txtInvoiceNumber
             // 
             this.txtInvoiceNumber.Font = new System.Drawing.Font("Segoe UI", 12F);
             this.txtInvoiceNumber.Location = new System.Drawing.Point(1200, 62);
             this.txtInvoiceNumber.Name = "txtInvoiceNumber";
-            this.txtInvoiceNumber.Size = new System.Drawing.Size(130, 29);
-            this.txtInvoiceNumber.TabIndex = 8;
+            this.txtInvoiceNumber.Size = new System.Drawing.Size(170, 29);
+            this.txtInvoiceNumber.TabIndex = 2;
             this.txtInvoiceNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // panelCustomer
@@ -220,7 +220,7 @@ namespace HaranInvoiceSoftware.Forms
             this.panelCustomer.Location = new System.Drawing.Point(30, 160);
             this.panelCustomer.Name = "panelCustomer";
             this.panelCustomer.Size = new System.Drawing.Size(600, 260);
-            this.panelCustomer.TabIndex = 1;
+            this.panelCustomer.TabIndex = 2;
             // 
             // lblBillTo
             // 
@@ -249,7 +249,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtCustomerName.Location = new System.Drawing.Point(140, 52);
             this.txtCustomerName.Name = "txtCustomerName";
             this.txtCustomerName.Size = new System.Drawing.Size(440, 29);
-            this.txtCustomerName.TabIndex = 2;
+            this.txtCustomerName.TabIndex = 3;
             this.txtCustomerName.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // lblCompanyNameCustomer
@@ -288,7 +288,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtAddress.Multiline = true;
             this.txtAddress.Name = "txtAddress";
             this.txtAddress.Size = new System.Drawing.Size(440, 70);
-            this.txtAddress.TabIndex = 6;
+            this.txtAddress.TabIndex = 5;
             this.txtAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // lblTel
@@ -307,7 +307,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtTel.Location = new System.Drawing.Point(140, 191);
             this.txtTel.Name = "txtTel";
             this.txtTel.Size = new System.Drawing.Size(220, 29);
-            this.txtTel.TabIndex = 8;
+            this.txtTel.TabIndex = 6;
             this.txtTel.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // lblEmail
@@ -326,7 +326,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtEmail.Location = new System.Drawing.Point(140, 224);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.Size = new System.Drawing.Size(440, 29);
-            this.txtEmail.TabIndex = 10;
+            this.txtEmail.TabIndex = 7;
             this.txtEmail.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // dgvItems
@@ -338,7 +338,7 @@ namespace HaranInvoiceSoftware.Forms
             this.dgvItems.Location = new System.Drawing.Point(30, 440);
             this.dgvItems.Name = "dgvItems";
             this.dgvItems.Size = new System.Drawing.Size(1340, 180);
-            this.dgvItems.TabIndex = 2;
+            this.dgvItems.TabIndex = 8;
             // 
             // lblFoodItems
             // 
@@ -360,7 +360,7 @@ namespace HaranInvoiceSoftware.Forms
             this.dgvFoodItems.Location = new System.Drawing.Point(30, 655);
             this.dgvFoodItems.Name = "dgvFoodItems";
             this.dgvFoodItems.Size = new System.Drawing.Size(920, 150);
-            this.dgvFoodItems.TabIndex = 11;
+            this.dgvFoodItems.TabIndex = 9;
             // 
             // panelTotals
             // 
@@ -386,7 +386,7 @@ namespace HaranInvoiceSoftware.Forms
             this.panelTotals.Location = new System.Drawing.Point(970, 655);
             this.panelTotals.Name = "panelTotals";
             this.panelTotals.Size = new System.Drawing.Size(400, 335);
-            this.panelTotals.TabIndex = 3;
+            this.panelTotals.TabIndex = 10;
             // 
             // lblSubtotal
             // 
@@ -424,7 +424,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtTaxRate.Location = new System.Drawing.Point(120, 57);
             this.txtTaxRate.Name = "txtTaxRate";
             this.txtTaxRate.Size = new System.Drawing.Size(60, 29);
-            this.txtTaxRate.TabIndex = 3;
+            this.txtTaxRate.TabIndex = 10;
             this.txtTaxRate.Text = "8.00";
             this.txtTaxRate.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
@@ -474,7 +474,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtOther.Location = new System.Drawing.Point(230, 127);
             this.txtOther.Name = "txtOther";
             this.txtOther.Size = new System.Drawing.Size(150, 29);
-            this.txtOther.TabIndex = 8;
+            this.txtOther.TabIndex = 11;
             this.txtOther.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // lblTotal
@@ -554,7 +554,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtAdvance.Location = new System.Drawing.Point(230, 287);
             this.txtAdvance.Name = "txtAdvance";
             this.txtAdvance.Size = new System.Drawing.Size(150, 29);
-            this.txtAdvance.TabIndex = 16;
+            this.txtAdvance.TabIndex = 13;
             this.txtAdvance.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // panelNotes
@@ -566,7 +566,7 @@ namespace HaranInvoiceSoftware.Forms
             this.panelNotes.Location = new System.Drawing.Point(30, 820);
             this.panelNotes.Name = "panelNotes";
             this.panelNotes.Size = new System.Drawing.Size(920, 170);
-            this.panelNotes.TabIndex = 4;
+            this.panelNotes.TabIndex = 14;
             // 
             // lblNotes
             // 
@@ -586,7 +586,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtNotes.Multiline = true;
             this.txtNotes.Name = "txtNotes";
             this.txtNotes.Size = new System.Drawing.Size(880, 100);
-            this.txtNotes.TabIndex = 1;
+            this.txtNotes.TabIndex = 14;
             this.txtNotes.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             // 
             // panelButtons
@@ -600,7 +600,7 @@ namespace HaranInvoiceSoftware.Forms
             this.panelButtons.Location = new System.Drawing.Point(0, 1030);
             this.panelButtons.Name = "panelButtons";
             this.panelButtons.Size = new System.Drawing.Size(1400, 70);
-            this.panelButtons.TabIndex = 5;
+            this.panelButtons.TabIndex = 15;
             // 
             // btnNew
             // 
@@ -612,7 +612,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnNew.Location = new System.Drawing.Point(30, 20);
             this.btnNew.Name = "btnNew";
             this.btnNew.Size = new System.Drawing.Size(120, 40);
-            this.btnNew.TabIndex = 0;
+            this.btnNew.TabIndex = 15;
             this.btnNew.Text = "New Invoice";
             this.btnNew.UseVisualStyleBackColor = false;
             // 
@@ -626,7 +626,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnLoad.Location = new System.Drawing.Point(170, 20);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(120, 40);
-            this.btnLoad.TabIndex = 1;
+            this.btnLoad.TabIndex = 16;
             this.btnLoad.Text = "Load Invoice";
             this.btnLoad.UseVisualStyleBackColor = false;
             // 
@@ -640,7 +640,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnSave.Location = new System.Drawing.Point(310, 20);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(120, 40);
-            this.btnSave.TabIndex = 2;
+            this.btnSave.TabIndex = 17;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = false;
             // 
@@ -654,7 +654,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnExportPdf.Location = new System.Drawing.Point(450, 20);
             this.btnExportPdf.Name = "btnExportPdf";
             this.btnExportPdf.Size = new System.Drawing.Size(120, 40);
-            this.btnExportPdf.TabIndex = 3;
+            this.btnExportPdf.TabIndex = 18;
             this.btnExportPdf.Text = "Export PDF";
             this.btnExportPdf.UseVisualStyleBackColor = false;
             // 

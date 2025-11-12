@@ -7,7 +7,10 @@ namespace HaranInvoiceSoftware.Models
     public class Company
     {
         [XmlElement]
-        public string Name { get; set; } = "NALLUR RESIDENCE";
+        public string Name { get; set; } = "NALLUR RESIDENCE (PVT) LTD";
+        
+        [XmlElement]
+        public string RegistrationNumber { get; set; } = "PV 00301818";
         
         [XmlElement]
         public string Address { get; set; } = "956 Point Pedro Rd, Nallur Jaffna";

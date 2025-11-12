@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Invoice xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <InvoiceNumber>INV-20251011-095937</InvoiceNumber>
-  <InvoiceDate>2025-10-11T09:59:37.2896118+05:30</InvoiceDate>
+  <InvoiceNumber>INV-20251011-170720</InvoiceNumber>
+  <InvoiceDate>2025-10-11T17:07:20.5161589+05:30</InvoiceDate>
   <Company>
-    <Name>NALLUR RESIDENCE</Name>
+    <Name>NALLUR RESIDENCE (PVT) LTD</Name>
+    <RegistrationNumber>PV 00301818</RegistrationNumber>
     <Address>956 Point Pedro Rd, Nallur Jaffna</Address>
     <Phone>077-244-6241</Phone>
     <Email>harangovindaraj@gmail.com</Email>
@@ -19,20 +20,27 @@
   <Items>
     <Item>
       <Description>Entire villa</Description>
-      <CheckIn>2025-10-11T09:59:37.286131</CheckIn>
-      <CheckOut>2025-10-12T09:59:37.2861328</CheckOut>
+      <CheckIn>2025-10-11T17:07:20.4936792</CheckIn>
+      <CheckOut>2025-10-12T17:07:20.4936806</CheckOut>
       <NumberOfNights>1</NumberOfNights>
       <PricePerNight>45000.00</PricePerNight>
       <Total>45000.00</Total>
     </Item>
   </Items>
-  <Subtotal>45000.00</Subtotal>
+  <FoodItems>
+    <FoodItem>
+      <Description>ZXC</Description>
+      <Note />
+      <Price>30000</Price>
+    </FoodItem>
+  </FoodItems>
+  <Subtotal>75000.00</Subtotal>
   <TaxRate>0.08</TaxRate>
-  <TaxAmount>3600.0000</TaxAmount>
+  <TaxAmount>6000.0000</TaxAmount>
   <Other>0.00</Other>
-  <Total>48600.0000</Total>
+  <Total>81000.0000</Total>
   <Paid>0.00</Paid>
-  <TotalDue>48600.0000</TotalDue>
+  <TotalDue>81000.0000</TotalDue>
   <Advance>0.00</Advance>
   <Notes />
   <FileName>C:\Haran Invoice Software\bin\Debug\net8.0-windows\Invoices\Invoice_INV-20251011-095937_20251011.xml</FileName>
