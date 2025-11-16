@@ -28,6 +28,8 @@ namespace HaranInvoiceSoftware.Forms
             this.lblInvoiceNumber = new System.Windows.Forms.Label();
             this.dtpInvoiceDate = new System.Windows.Forms.DateTimePicker();
             this.txtInvoiceNumber = new System.Windows.Forms.TextBox();
+            this.lblCurrency = new System.Windows.Forms.Label();
+            this.cboCurrency = new System.Windows.Forms.ComboBox();
             this.panelCustomer = new System.Windows.Forms.Panel();
             this.lblBillTo = new System.Windows.Forms.Label();
             this.lblCustomerName = new System.Windows.Forms.Label();
@@ -63,7 +65,7 @@ namespace HaranInvoiceSoftware.Forms
             this.txtAdvance = new System.Windows.Forms.TextBox();
             this.panelNotes = new System.Windows.Forms.Panel();
             this.lblNotes = new System.Windows.Forms.Label();
-            this.txtNotes = new System.Windows.Forms.TextBox();
+            this.txtNotes = new System.Windows.Forms.RichTextBox();
             this.panelButtons = new System.Windows.Forms.Panel();
             this.btnNew = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
@@ -82,6 +84,8 @@ namespace HaranInvoiceSoftware.Forms
             // panelHeader
             // 
             this.panelHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(40)))), ((int)(((byte)(62)))));
+            this.panelHeader.Controls.Add(this.cboCurrency);
+            this.panelHeader.Controls.Add(this.lblCurrency);
             this.panelHeader.Controls.Add(this.pictureBoxLogo);
             this.panelHeader.Controls.Add(this.lblCompanyName);
             this.panelHeader.Controls.Add(this.lblCompanyAddress);
@@ -201,6 +205,30 @@ namespace HaranInvoiceSoftware.Forms
             this.txtInvoiceNumber.Size = new System.Drawing.Size(170, 29);
             this.txtInvoiceNumber.TabIndex = 2;
             this.txtInvoiceNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            // 
+            // lblCurrency
+            // 
+            this.lblCurrency.AutoSize = true;
+            this.lblCurrency.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.lblCurrency.ForeColor = System.Drawing.Color.White;
+            this.lblCurrency.Location = new System.Drawing.Point(1100, 105);
+            this.lblCurrency.Name = "lblCurrency";
+            this.lblCurrency.Size = new System.Drawing.Size(81, 21);
+            this.lblCurrency.TabIndex = 11;
+            this.lblCurrency.Text = "Currency:";
+            // 
+            // cboCurrency
+            // 
+            this.cboCurrency.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboCurrency.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.cboCurrency.FormattingEnabled = true;
+            this.cboCurrency.Items.AddRange(new object[] {
+            "LKR",
+            "USD"});
+            this.cboCurrency.Location = new System.Drawing.Point(1185, 102);
+            this.cboCurrency.Name = "cboCurrency";
+            this.cboCurrency.Size = new System.Drawing.Size(185, 29);
+            this.cboCurrency.TabIndex = 3;
             // 
             // panelCustomer
             // 
@@ -579,15 +607,14 @@ namespace HaranInvoiceSoftware.Forms
             this.lblNotes.TabIndex = 0;
             this.lblNotes.Text = "Notes:";
             // 
-            // txtNotes
+            // txtNotes (RichTextBox)
             // 
             this.txtNotes.Font = new System.Drawing.Font("Segoe UI", 12F);
             this.txtNotes.Location = new System.Drawing.Point(20, 55);
-            this.txtNotes.Multiline = true;
             this.txtNotes.Name = "txtNotes";
             this.txtNotes.Size = new System.Drawing.Size(880, 100);
             this.txtNotes.TabIndex = 14;
-            this.txtNotes.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.txtNotes.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             // 
             // panelButtons
             // 
@@ -744,11 +771,13 @@ namespace HaranInvoiceSoftware.Forms
         private System.Windows.Forms.TextBox txtAdvance;
         private System.Windows.Forms.Panel panelNotes;
         private System.Windows.Forms.Label lblNotes;
-        private System.Windows.Forms.TextBox txtNotes;
+        private System.Windows.Forms.RichTextBox txtNotes;
         private System.Windows.Forms.Panel panelButtons;
         private System.Windows.Forms.Button btnNew;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnExportPdf;
+        private System.Windows.Forms.Label lblCurrency;
+        private System.Windows.Forms.ComboBox cboCurrency;
     }
 }

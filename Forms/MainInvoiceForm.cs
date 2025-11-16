@@ -31,6 +31,65 @@ namespace HaranInvoiceSoftware.Forms
             LoadCompanyLogo();
             LoadLastInvoice();
             SetupEventHandlers();
+            InitializeCurrencySelector();
+            RefreshCurrencyDisplays();
+        }
+
+        private void InitializeCurrencySelector()
+        {
+            try
+            {
+                string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                if (cboCurrency != null)
+                {
+                    if (!cboCurrency.Items.Contains(code))
+                        cboCurrency.Items.Add(code);
+                    cboCurrency.SelectedItem = code;
+                    cboCurrency.SelectedIndexChanged -= CboCurrency_SelectedIndexChanged; // avoid double subscription
+                    cboCurrency.SelectedIndexChanged += CboCurrency_SelectedIndexChanged;
+                }
+            }
+            catch { /* ignore UI init errors */ }
+        }
+
+        private void CboCurrency_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_currentInvoice == null) return;
+            if (cboCurrency?.SelectedItem == null) return;
+            string newCode = cboCurrency.SelectedItem.ToString();
+            if (string.Equals(_currentInvoice.CurrencyCode, newCode, StringComparison.OrdinalIgnoreCase)) return;
+            _currentInvoice.CurrencyCode = newCode;
+            RefreshCurrencyDisplays();
+            AutoSave();
+        }
+
+        private void RefreshCurrencyDisplays()
+        {
+            if (_currentInvoice == null) return;
+            ReformatTotals(_currentInvoice.CurrencyCode ?? "LKR");
+            dgvItems?.Refresh();
+            dgvFoodItems?.Refresh();
+        }
+
+        private void ReformatTotals(string code)
+        {
+            // Re-parse without assuming existing symbol
+            if (CurrencyHelper.TryParse(txtSubtotal.Text, code, out var subtotal))
+                txtSubtotal.Text = CurrencyHelper.Format(subtotal, code);
+            if (CurrencyHelper.TryParse(txtTaxes.Text, code, out var taxes))
+                txtTaxes.Text = CurrencyHelper.Format(taxes, code);
+            if (CurrencyHelper.TryParse(txtTotal.Text, code, out var total))
+                txtTotal.Text = CurrencyHelper.Format(total, code);
+            if (CurrencyHelper.TryParse(txtTotalDue.Text, code, out var totalDue))
+                txtTotalDue.Text = CurrencyHelper.Format(totalDue, code);
+
+            // Editable numeric fields keep plain numbers for easy editing
+            if (CurrencyHelper.TryParse(txtPaid.Text, code, out var paid))
+                txtPaid.Text = CurrencyHelper.FormatShort(paid);
+            if (CurrencyHelper.TryParse(txtOther.Text, code, out var other))
+                txtOther.Text = CurrencyHelper.FormatShort(other);
+            if (CurrencyHelper.TryParse(txtAdvance.Text, code, out var adv))
+                txtAdvance.Text = CurrencyHelper.FormatShort(adv);
         }
 
         private void InitializeDataGrid()
@@ -514,15 +573,18 @@ namespace HaranInvoiceSoftware.Forms
 
         private void DgvItems_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Format currency columns with Sri Lankan Rupees
             if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvItems.Columns.Count)
             {
                 string columnName = dgvItems.Columns[e.ColumnIndex].Name;
                 if ((columnName == "Price / Night" || columnName == "Total") && e.Value != null)
                 {
-                    if (decimal.TryParse(e.Value.ToString(), out decimal amount))
+                    string raw = e.Value.ToString();
+                    // strip possible previous symbols
+                    raw = raw.Replace("Rs.", "").Replace("$", "").Trim();
+                    if (decimal.TryParse(raw, out decimal amount))
                     {
-                        e.Value = Utils.CurrencyHelper.FormatSriLankanRupees(amount);
+                        string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                        e.Value = CurrencyHelper.Format(amount, code);
                         e.FormattingApplied = true;
                     }
                 }
@@ -738,17 +800,17 @@ namespace HaranInvoiceSoftware.Forms
 
         private void DgvFoodItems_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Format price column with Sri Lankan Rupees
             if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvFoodItems.Columns.Count)
             {
                 string columnName = dgvFoodItems.Columns[e.ColumnIndex].Name;
                 if (columnName == "Price" && e.Value != null)
                 {
                     string valueStr = e.Value.ToString();
-                    // Only format if it's not already formatted
-                    if (!valueStr.Contains("Rs.") && decimal.TryParse(valueStr, out decimal amount) && amount > 0)
+                    valueStr = valueStr.Replace("Rs.", "").Replace("$", "").Trim();
+                    if (decimal.TryParse(valueStr, out decimal amount) && amount > 0)
                     {
-                        e.Value = Utils.CurrencyHelper.FormatSriLankanRupees(amount);
+                        string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                        e.Value = CurrencyHelper.Format(amount, code);
                         e.FormattingApplied = true;
                     }
                 }
@@ -827,12 +889,14 @@ namespace HaranInvoiceSoftware.Forms
 
             // Populate totals
             txtTaxRate.Text = (_currentInvoice.TaxRate * 100).ToString("F2");
-            txtOther.Text = CurrencyHelper.FormatSriLankanRupeesShort(_currentInvoice.Other);
-            txtPaid.Text = CurrencyHelper.FormatSriLankanRupeesShort(_currentInvoice.Paid);
-            txtAdvance.Text = CurrencyHelper.FormatSriLankanRupeesShort(_currentInvoice.Advance);
+            txtOther.Text = CurrencyHelper.FormatShort(_currentInvoice.Other);
+            txtPaid.Text = CurrencyHelper.FormatShort(_currentInvoice.Paid);
+            txtAdvance.Text = CurrencyHelper.FormatShort(_currentInvoice.Advance);
             txtNotes.Text = _currentInvoice.Notes;
 
             CalculateTotals();
+            InitializeCurrencySelector();
+            RefreshCurrencyDisplays();
         }
 
         private void UpdateInvoiceFromForm()
@@ -904,6 +968,12 @@ namespace HaranInvoiceSoftware.Forms
 
             _currentInvoice.Notes = txtNotes.Text;
 
+            // Update currency from selector if available
+            if (cboCurrency?.SelectedItem != null)
+            {
+                _currentInvoice.CurrencyCode = cboCurrency.SelectedItem.ToString();
+            }
+
             _currentInvoice.CalculateTotals();
         }
 
@@ -923,7 +993,8 @@ namespace HaranInvoiceSoftware.Forms
             {
                 if (row.RowState != DataRowState.Deleted && row["Price"] != DBNull.Value && row["Price"].ToString() != "")
                 {
-                    if (CurrencyHelper.TryParseSriLankanRupees(row["Price"].ToString(), out decimal foodPrice))
+                    string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                    if (CurrencyHelper.TryParse(row["Price"].ToString(), code, out decimal foodPrice))
                     {
                         subtotal += foodPrice;
                     }
@@ -941,10 +1012,11 @@ namespace HaranInvoiceSoftware.Forms
             decimal total = subtotal + taxes + other;
             decimal totalDue = total - paid - advance;
 
-            txtSubtotal.Text = CurrencyHelper.FormatSriLankanRupees(subtotal);
-            txtTaxes.Text = CurrencyHelper.FormatSriLankanRupees(taxes);
-            txtTotal.Text = CurrencyHelper.FormatSriLankanRupees(total);
-            txtTotalDue.Text = CurrencyHelper.FormatSriLankanRupees(totalDue);
+            string currencyCode = _currentInvoice?.CurrencyCode ?? "LKR";
+            txtSubtotal.Text = CurrencyHelper.Format(subtotal, currencyCode);
+            txtTaxes.Text = CurrencyHelper.Format(taxes, currencyCode);
+            txtTotal.Text = CurrencyHelper.Format(total, currencyCode);
+            txtTotalDue.Text = CurrencyHelper.Format(totalDue, currencyCode);
         }
 
         private void AutoSave()
@@ -992,16 +1064,20 @@ namespace HaranInvoiceSoftware.Forms
             dtpInvoiceDate.Value = DateTime.Now;
 
             // Clear calculated totals
-            txtSubtotal.Text = CurrencyHelper.FormatSriLankanRupees(0);
-            txtTaxes.Text = CurrencyHelper.FormatSriLankanRupees(0);
-            txtTotal.Text = CurrencyHelper.FormatSriLankanRupees(0);
-            txtTotalDue.Text = CurrencyHelper.FormatSriLankanRupees(0);
+            string code = _currentInvoice?.CurrencyCode ?? (cboCurrency?.SelectedItem?.ToString() ?? "LKR");
+            _currentInvoice.CurrencyCode = code;
+            txtSubtotal.Text = CurrencyHelper.Format(0, code);
+            txtTaxes.Text = CurrencyHelper.Format(0, code);
+            txtTotal.Text = CurrencyHelper.Format(0, code);
+            txtTotalDue.Text = CurrencyHelper.Format(0, code);
 
             // Set the filename for this invoice
             _currentInvoice.InvoiceNumber = invoiceNumber;
             _currentInvoice.FileName = fileName;
+            _currentInvoice.CurrencyCode = cboCurrency?.SelectedItem?.ToString() ?? "LKR";
 
             CalculateTotals();
+            RefreshCurrencyDisplays();
         }
 
         private void BtnLoad_Click(object sender, EventArgs e)

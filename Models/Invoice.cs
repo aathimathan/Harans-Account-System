@@ -59,12 +59,22 @@ namespace HaranInvoiceSoftware.Models
         [XmlElement]
         public string FileName { get; set; } = "";
 
+    // Currency code for this invoice (e.g. LKR, USD). Defaults to LKR (Sri Lankan Rupees)
+    [XmlElement]
+    public string CurrencyCode { get; set; } = "LKR";
+
         public void CalculateTotals()
         {
             Subtotal = Items.Sum(item => item.Total) + FoodItems.Sum(food => food.Price);
             TaxAmount = Subtotal * TaxRate;
             Total = Subtotal + TaxAmount + Other;
             TotalDue = Total - Paid - Advance;
+
+            // Ensure currency code always has a sensible default when loading older XML without the field
+            if (string.IsNullOrWhiteSpace(CurrencyCode))
+            {
+                CurrencyCode = "LKR"; // backward compatibility
+            }
         }
     }
 }

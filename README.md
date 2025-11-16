@@ -4,16 +4,20 @@ A professional C# Windows Forms invoicing application with modern UI design, PDF
 
 ## Features
 
-- **Modern UI Design**: Clean, professional interface with state-of-the-art styling
-- **PDF Export**: Generate professional PDF invoices using iText7
-- **XML Data Storage**: Save and load invoices in XML format
-- **Auto-Save**: Automatically saves invoice data as you type
-- **Auto-Restore**: Automatically loads the last worked invoice on startup
-- **Invoice Management**: Create new invoices, load existing ones, and manage invoice history
+- **Currency Selection**: Switch invoice display currency between Sri Lankan Rupees (LKR) and US Dollars (USD) instantly
 
 ## Technology Stack
 
 - **Framework**: .NET 6.0 Windows Forms
+
+### Switching Currency
+
+Use the `Currency` drop-down in the top-right header of the invoice screen to toggle between:
+
+- `LKR` (shows values as `Rs. 12,345.67`)
+- `USD` (shows values as `$ 12,345.67`)
+
+Changing the currency updates all displayed totals, item prices, food item prices, and the PDF export formatting. Only the symbol changes; no exchange-rate conversion is applied (values are treated as-is). Editable numeric fields (Paid, Other, Advance) remain without symbols for easy input.
 - **PDF Generation**: iText7
 - **Data Storage**: XML Serialization
 - **UI**: Windows Forms with modern styling
