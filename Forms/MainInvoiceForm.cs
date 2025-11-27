@@ -282,6 +282,8 @@ namespace HaranInvoiceSoftware.Forms
             dgvItems.CellEndEdit += DgvItems_CellEndEdit;
             dgvItems.CellFormatting += DgvItems_CellFormatting;
             dgvItems.MouseClick += DgvItems_MouseClick;
+            dgvItems.CellParsing += DgvItems_CellParsing;
+            dgvItems.DataError += DgvItems_DataError;
 
             // Food DataGridView events
             dgvFoodItems.CellValueChanged += DgvFoodItems_CellValueChanged;
@@ -291,6 +293,8 @@ namespace HaranInvoiceSoftware.Forms
             dgvFoodItems.CellFormatting += DgvFoodItems_CellFormatting;
             dgvFoodItems.CellClick += DgvFoodItems_CellClick;
             dgvFoodItems.MouseClick += DgvFoodItems_MouseClick;
+            dgvFoodItems.CellParsing += DgvFoodItems_CellParsing;
+            dgvFoodItems.DataError += DgvFoodItems_DataError;
 
             // Setup context menus
             SetupContextMenus();
@@ -670,30 +674,27 @@ namespace HaranInvoiceSoftware.Forms
                     columnName = dgvItems.Columns[e.ColumnIndex].Name;
                 }
 
-                // Calculate nights when either check-in or check-out date changes
+                // Calculate nights when either check-in or check-out date changes (date-based, ignore time component)
                 if (columnName == "Check In" || columnName == "Check Out" ||
                     (row["Check In"] != DBNull.Value && row["Check Out"] != DBNull.Value))
                 {
                     if (row["Check In"] != DBNull.Value && row["Check Out"] != DBNull.Value)
                     {
-                        DateTime checkIn = (DateTime)row["Check In"];
-                        DateTime checkOut = (DateTime)row["Check Out"];
+                        DateTime checkIn = ((DateTime)row["Check In"]).Date;
+                        DateTime checkOut = ((DateTime)row["Check Out"]).Date;
 
-                        // Ensure check-out is after check-in
+                        // Ensure check-out is after or same as check-in; if same date, force one night
                         if (checkOut <= checkIn)
                         {
-                            checkOut = checkIn.AddDays(1);
+                            checkOut = checkIn.AddDays(1).Date;
                             row["Check Out"] = checkOut;
-                            // Update the DataGridView as well
                             dgvItems["Check Out", e.RowIndex].Value = checkOut;
                         }
 
                         int nights = (checkOut - checkIn).Days;
-                        int calculatedNights = Math.Max(1, nights);
-                        row["# of Nights"] = calculatedNights;
-
-                        // Update the DataGridView display
-                        dgvItems["# of Nights", e.RowIndex].Value = calculatedNights;
+                        if (nights <= 0) nights = 1; // safety
+                        row["# of Nights"] = nights;
+                        dgvItems["# of Nights", e.RowIndex].Value = nights;
                     }
                 }
 
@@ -722,38 +723,32 @@ namespace HaranInvoiceSoftware.Forms
             var row = e.Row;
             string columnName = e.Column.ColumnName;
 
-            // Calculate nights when either check-in or check-out date changes
+            // Calculate nights when either check-in or check-out date changes (date-based, ignore time)
             if (columnName == "Check In" || columnName == "Check Out")
             {
                 if (row["Check In"] != DBNull.Value && row["Check Out"] != DBNull.Value)
                 {
-                    DateTime checkIn = (DateTime)row["Check In"];
-                    DateTime checkOut = (DateTime)row["Check Out"];
+                    DateTime checkIn = ((DateTime)row["Check In"]).Date;
+                    DateTime checkOut = ((DateTime)row["Check Out"]).Date;
 
-                    // Ensure check-out is after check-in
                     if (checkOut <= checkIn)
                     {
-                        // Temporarily remove event handler to prevent cascading
                         _itemsTable.ColumnChanged -= ItemsTable_ColumnChanged;
-
                         try
                         {
-                            checkOut = checkIn.AddDays(1);
+                            checkOut = checkIn.AddDays(1).Date;
                             row["Check Out"] = checkOut;
                         }
                         finally
                         {
-                            // Re-add event handler
                             _itemsTable.ColumnChanged += ItemsTable_ColumnChanged;
                         }
                     }
 
                     int nights = (checkOut - checkIn).Days;
-                    int calculatedNights = Math.Max(1, nights);
-                    row["# of Nights"] = calculatedNights;
-
-                    // Debug output
-                    System.Diagnostics.Debug.WriteLine($"Calculated nights: {calculatedNights} for dates {checkIn:yyyy-MM-dd} to {checkOut:yyyy-MM-dd}");
+                    if (nights <= 0) nights = 1;
+                    row["# of Nights"] = nights;
+                    System.Diagnostics.Debug.WriteLine($"Calculated nights: {nights} for dates {checkIn:yyyy-MM-dd} to {checkOut:yyyy-MM-dd}");
                 }
             }
 
@@ -815,6 +810,54 @@ namespace HaranInvoiceSoftware.Forms
                     }
                 }
             }
+        }
+
+        private void DgvItems_CellParsing(object sender, DataGridViewCellParsingEventArgs e)
+        {
+            if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvItems.Columns.Count)
+            {
+                string columnName = dgvItems.Columns[e.ColumnIndex].Name;
+                if ((columnName == "Price / Night" || columnName == "Total") && e.Value != null)
+                {
+                    string raw = e.Value.ToString();
+                    string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                    if (CurrencyHelper.TryParse(raw, code, out decimal parsed))
+                    {
+                        e.Value = parsed;
+                        e.ParsingApplied = true;
+                    }
+                }
+            }
+        }
+
+        private void DgvFoodItems_CellParsing(object sender, DataGridViewCellParsingEventArgs e)
+        {
+            if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvFoodItems.Columns.Count)
+            {
+                string columnName = dgvFoodItems.Columns[e.ColumnIndex].Name;
+                if (columnName == "Price" && e.Value != null)
+                {
+                    string raw = e.Value.ToString();
+                    string code = _currentInvoice?.CurrencyCode ?? "LKR";
+                    if (CurrencyHelper.TryParse(raw, code, out decimal parsed))
+                    {
+                        e.Value = parsed;
+                        e.ParsingApplied = true;
+                    }
+                }
+            }
+        }
+
+        private void DgvItems_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+            e.Cancel = true;
+        }
+
+        private void DgvFoodItems_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+            e.Cancel = true;
         }
 
         private void LoadLastInvoice()
