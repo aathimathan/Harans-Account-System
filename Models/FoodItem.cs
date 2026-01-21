@@ -7,11 +7,14 @@ namespace HaranInvoiceSoftware.Models
     public class FoodItem
     {
         [XmlElement]
+        public DateTime Date { get; set; } = DateTime.Now;
+
+        [XmlElement]
         public string Description { get; set; } = "";
-        
+
         [XmlElement]
         public string Note { get; set; } = "";
-        
+
         [XmlElement]
         public decimal Price { get; set; } = 0m;
     }

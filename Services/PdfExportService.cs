@@ -18,6 +18,22 @@ namespace HaranInvoiceSoftware.Services
 {
     public class PdfExportService
     {
+        private static string NormalizeLineBreaks(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+
+            // Handle cases where the text contains the *literal* characters "\r\n" (backslash-r-backslash-n)
+            // instead of actual CRLF characters.
+            text = text.Replace("\\r\\n", "\n")
+                       .Replace("\\n", "\n")
+                       .Replace("\\r", "\n");
+
+            // Normalize actual CRLF/CR to LF for consistent PDF rendering.
+            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            return text;
+        }
+
         public void ExportToPdf(Invoice invoice, string filePath)
         {
             try
@@ -299,10 +315,15 @@ namespace HaranInvoiceSoftware.Services
 
             document.Add(foodHeader);
 
-            var table = new Table(new float[] { 3f, 2f, 1.5f }).UseAllAvailableWidth();
+            var table = new Table(new float[] { 1.2f, 2.8f, 2.0f, 1.4f }).UseAllAvailableWidth();
             table.SetMarginBottom(15);
 
             // Header row
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Date")
+                .SetFontSize(9).SetBold().SetTextAlignment(TextAlignment.CENTER))
+                .SetBackgroundColor(ColorConstants.LIGHT_GRAY).SetPadding(6)
+                .SetBorder(new SolidBorder(ColorConstants.DARK_GRAY, 0.5f)));
+
             table.AddHeaderCell(new Cell().Add(new Paragraph("Description")
                 .SetFontSize(9).SetBold().SetTextAlignment(TextAlignment.CENTER))
                 .SetBackgroundColor(ColorConstants.LIGHT_GRAY).SetPadding(6)
@@ -326,10 +347,23 @@ namespace HaranInvoiceSoftware.Services
 
                 var rowColor = isEvenRow ? new DeviceRgb(248, 248, 248) : ColorConstants.WHITE;
 
+                string dateText = "";
+                if (item.Date != default(DateTime) && item.Date != DateTime.MinValue)
+                {
+                    dateText = item.Date.ToString("dd-MMM-yy");
+                }
+
+                table.AddCell(new Cell().Add(new Paragraph(dateText).SetFontSize(8).SetTextAlignment(TextAlignment.CENTER))
+                    .SetBackgroundColor(rowColor).SetPadding(5).SetBorder(new SolidBorder(ColorConstants.DARK_GRAY, 0.5f)));
+
                 table.AddCell(new Cell().Add(new Paragraph(item.Description).SetFontSize(8).SetTextAlignment(TextAlignment.LEFT))
                     .SetBackgroundColor(rowColor).SetPadding(5).SetBorder(new SolidBorder(ColorConstants.DARK_GRAY, 0.5f)));
 
-                table.AddCell(new Cell().Add(new Paragraph(item.Note ?? "").SetFontSize(8).SetTextAlignment(TextAlignment.LEFT))
+                var normalizedNote = NormalizeLineBreaks(item.Note ?? "");
+                table.AddCell(new Cell().Add(new Paragraph(normalizedNote)
+                        .SetFontSize(8)
+                        .SetTextAlignment(TextAlignment.LEFT)
+                        .SetMultipliedLeading(1.0f))
                     .SetBackgroundColor(rowColor).SetPadding(5).SetBorder(new SolidBorder(ColorConstants.DARK_GRAY, 0.5f)));
 
                 table.AddCell(new Cell().Add(new Paragraph(CurrencyHelper.Format(item.Price, invoice.CurrencyCode ?? "LKR")).SetFontSize(8).SetBold().SetTextAlignment(TextAlignment.RIGHT))
@@ -353,7 +387,7 @@ namespace HaranInvoiceSoftware.Services
                     .SetFontSize(10)
                     .SetBold()
                     .SetMarginBottom(5))
-                .Add(new Paragraph(invoice.Notes ?? "No additional notes")
+                .Add(new Paragraph(NormalizeLineBreaks(invoice.Notes ?? "No additional notes"))
                     .SetFontSize(8)
                     // Ensure single line spacing; preserve explicit blank lines from user input
                     .SetMultipliedLeading(1.0f)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using System.Xml;
@@ -15,7 +16,7 @@ namespace HaranInvoiceSoftware.Services
         {
             _invoicesDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Invoices");
             _lastInvoiceFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "last_invoice.txt");
-            
+
             // Ensure invoices directory exists
             if (!Directory.Exists(_invoicesDirectory))
             {
@@ -33,7 +34,7 @@ namespace HaranInvoiceSoftware.Services
                 }
 
                 string filePath;
-                
+
                 // Use stored filename if available, otherwise generate one
                 if (!string.IsNullOrEmpty(invoice.FileName))
                 {
@@ -75,6 +76,21 @@ namespace HaranInvoiceSoftware.Services
                 {
                     var invoice = (Invoice)serializer.Deserialize(stream);
                     invoice.FileName = filePath; // Store the loaded file path
+
+                    // Ensure collections and objects are initialized
+                    if (invoice.Customer == null)
+                        invoice.Customer = new Customer();
+                    if (invoice.Items == null)
+                        invoice.Items = new List<InvoiceItem>();
+                    if (invoice.FoodItems == null)
+                        invoice.FoodItems = new List<FoodItem>();
+                    if (invoice.Company == null)
+                        invoice.Company = new Company();
+
+                    // Ensure currency code has a default
+                    if (string.IsNullOrWhiteSpace(invoice.CurrencyCode))
+                        invoice.CurrencyCode = "LKR";
+
                     return invoice;
                 }
             }

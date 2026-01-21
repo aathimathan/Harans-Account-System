@@ -20,6 +20,7 @@ namespace HaranInvoiceSoftware.Forms
         private DataTable _foodItemsTable;
         private int _rightClickedRowIndex = -1;
         private DataGridView _rightClickedGrid = null;
+        private bool _suppressAutoSave = false;
 
         public MainInvoiceForm()
         {
@@ -151,6 +152,7 @@ namespace HaranInvoiceSoftware.Forms
         private void InitializeFoodDataGrid()
         {
             _foodItemsTable = new DataTable();
+            _foodItemsTable.Columns.Add("Date", typeof(DateTime));
             _foodItemsTable.Columns.Add("Description", typeof(string));
             _foodItemsTable.Columns.Add("Note", typeof(string));
             _foodItemsTable.Columns.Add("Price", typeof(decimal));
@@ -179,14 +181,24 @@ namespace HaranInvoiceSoftware.Forms
             dgvFoodItems.EditMode = DataGridViewEditMode.EditOnEnter;
             dgvFoodItems.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 
-            // Set price column format
+            // Set date and price column formats
             foreach (DataGridViewColumn column in dgvFoodItems.Columns)
             {
-                if (column.Name == "Price")
+                if (column.Name == "Date")
+                {
+                    column.DefaultCellStyle.Format = "dd-MMM-yy";
+                    // Under AutoSizeColumnsMode.Fill, prefer FillWeight over Width.
+                    // Setting Width here can throw on some machines because the column isn't fully attached yet.
+                    column.FillWeight = 25;
+                }
+                else if (column.Name == "Price")
                 {
                     // Currency formatting is handled in CellFormatting event
                 }
             }
+
+            // Add date picker functionality for food date column
+            SetupFoodDatePickerColumn();
         }
 
         private void LoadCompanyLogo()
@@ -303,6 +315,9 @@ namespace HaranInvoiceSoftware.Forms
         private DateTimePicker _dateTimePicker;
         private bool _isUpdatingDatePicker = false; // Flag to prevent recursive updates
 
+        private DateTimePicker _foodDateTimePicker;
+        private bool _isUpdatingFoodDatePicker = false; // Flag to prevent recursive updates
+
         private void SetupDatePickerColumns()
         {
             // Create a DateTimePicker control for date editing
@@ -313,6 +328,18 @@ namespace HaranInvoiceSoftware.Forms
             _dateTimePicker.KeyDown += DateTimePicker_KeyDown;
             _dateTimePicker.Leave += DateTimePicker_Leave;
             dgvItems.Controls.Add(_dateTimePicker);
+        }
+
+        private void SetupFoodDatePickerColumn()
+        {
+            _foodDateTimePicker = new DateTimePicker();
+            _foodDateTimePicker.Format = DateTimePickerFormat.Custom;
+            _foodDateTimePicker.CustomFormat = "dd-MMM-yy";
+            _foodDateTimePicker.Visible = false;
+            _foodDateTimePicker.ValueChanged += FoodDateTimePicker_ValueChanged;
+            _foodDateTimePicker.KeyDown += FoodDateTimePicker_KeyDown;
+            _foodDateTimePicker.Leave += FoodDateTimePicker_Leave;
+            dgvFoodItems.Controls.Add(_foodDateTimePicker);
         }
 
         private void SetupContextMenus()
@@ -427,7 +454,15 @@ namespace HaranInvoiceSoftware.Forms
             // For food items grid, enter edit mode immediately on single click
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                dgvFoodItems.BeginEdit(false);
+                DataGridViewColumn column = dgvFoodItems.Columns[e.ColumnIndex];
+                if (column.Name == "Date")
+                {
+                    ShowFoodDateTimePicker(e.RowIndex, e.ColumnIndex);
+                }
+                else
+                {
+                    dgvFoodItems.BeginEdit(false);
+                }
             }
         }
 
@@ -548,7 +583,7 @@ namespace HaranInvoiceSoftware.Forms
         private void AddFoodMenuItem_Click(object sender, EventArgs e)
         {
             // Add a new row to food items
-            _foodItemsTable.Rows.Add("", "", 0.00m);
+            _foodItemsTable.Rows.Add(DateTime.Now, "", "", 0.00m);
             CalculateTotals();
             AutoSave();
         }
@@ -625,6 +660,113 @@ namespace HaranInvoiceSoftware.Forms
 
             _dateTimePicker.Visible = true;
             _dateTimePicker.Focus();
+        }
+
+        private void ShowFoodDateTimePicker(int rowIndex, int columnIndex)
+        {
+            if (_foodDateTimePicker == null)
+            {
+                SetupFoodDatePickerColumn();
+            }
+
+            Rectangle cellRect = dgvFoodItems.GetCellDisplayRectangle(columnIndex, rowIndex, false);
+
+            DateTime currentValue = DateTime.Now.Date;
+            var cellValue = dgvFoodItems[columnIndex, rowIndex].Value;
+            if (cellValue != null && cellValue != DBNull.Value)
+            {
+                if (cellValue is DateTime dt)
+                {
+                    currentValue = dt.Date;
+                }
+                else if (DateTime.TryParse(cellValue.ToString(), out DateTime parsedDate))
+                {
+                    currentValue = parsedDate.Date;
+                }
+            }
+
+            _isUpdatingFoodDatePicker = true;
+            try
+            {
+                _foodDateTimePicker.Value = currentValue;
+                _foodDateTimePicker.Location = new Point(cellRect.X, cellRect.Y);
+                _foodDateTimePicker.Size = new Size(cellRect.Width, cellRect.Height);
+                _foodDateTimePicker.Tag = new Point(columnIndex, rowIndex);
+            }
+            finally
+            {
+                _isUpdatingFoodDatePicker = false;
+            }
+
+            _foodDateTimePicker.Visible = true;
+            _foodDateTimePicker.BringToFront();
+            _foodDateTimePicker.Focus();
+        }
+
+        private void FoodDateTimePicker_ValueChanged(object sender, EventArgs e)
+        {
+            if (_isUpdatingFoodDatePicker) return;
+
+            if (_foodDateTimePicker?.Tag is Point cellPosition)
+            {
+                int columnIndex = cellPosition.X;
+                int rowIndex = cellPosition.Y;
+
+                if (rowIndex < dgvFoodItems.Rows.Count && columnIndex < dgvFoodItems.Columns.Count &&
+                    rowIndex < _foodItemsTable.Rows.Count)
+                {
+                    _isUpdatingFoodDatePicker = true;
+                    try
+                    {
+                        _foodItemsTable.Rows[rowIndex]["Date"] = _foodDateTimePicker.Value.Date;
+                    }
+                    finally
+                    {
+                        _isUpdatingFoodDatePicker = false;
+                    }
+                }
+            }
+        }
+
+        private void FoodDateTimePicker_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                _foodDateTimePicker.Visible = false;
+                dgvFoodItems.Focus();
+            }
+            else if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Tab)
+            {
+                _foodDateTimePicker.Visible = false;
+                dgvFoodItems.Focus();
+
+                if (e.KeyCode == Keys.Tab && dgvFoodItems.CurrentCell != null)
+                {
+                    int nextColumn = dgvFoodItems.CurrentCell.ColumnIndex + 1;
+                    int currentRow = dgvFoodItems.CurrentCell.RowIndex;
+                    if (nextColumn < dgvFoodItems.Columns.Count)
+                    {
+                        dgvFoodItems.CurrentCell = dgvFoodItems[nextColumn, currentRow];
+                    }
+                }
+            }
+        }
+
+        private void FoodDateTimePicker_Leave(object sender, EventArgs e)
+        {
+            if (_foodDateTimePicker?.Tag is Point cellPosition)
+            {
+                int rowIndex = cellPosition.Y;
+                if (rowIndex < _foodItemsTable.Rows.Count)
+                {
+                    _foodItemsTable.Rows[rowIndex]["Date"] = _foodDateTimePicker.Value.Date;
+                }
+            }
+
+            if (_foodDateTimePicker != null)
+            {
+                _foodDateTimePicker.Visible = false;
+            }
         }
 
         private void DateTimePicker_ValueChanged(object sender, EventArgs e)
@@ -798,7 +940,15 @@ namespace HaranInvoiceSoftware.Forms
             if (e.ColumnIndex >= 0 && e.ColumnIndex < dgvFoodItems.Columns.Count)
             {
                 string columnName = dgvFoodItems.Columns[e.ColumnIndex].Name;
-                if (columnName == "Price" && e.Value != null)
+                if (columnName == "Date" && e.Value != null)
+                {
+                    if (e.Value is DateTime dt)
+                    {
+                        e.Value = dt.ToString("dd-MMM-yy");
+                        e.FormattingApplied = true;
+                    }
+                }
+                else if (columnName == "Price" && e.Value != null)
                 {
                     string valueStr = e.Value.ToString();
                     valueStr = valueStr.Replace("Rs.", "").Replace("$", "").Trim();
@@ -889,57 +1039,69 @@ namespace HaranInvoiceSoftware.Forms
         {
             if (_currentInvoice == null) return;
 
-            // Populate invoice details
-            dtpInvoiceDate.Value = _currentInvoice.InvoiceDate;
-            txtInvoiceNumber.Text = _currentInvoice.InvoiceNumber;
+            // Suppress auto-save while populating form to prevent overwriting loaded data
+            _suppressAutoSave = true;
 
-            // Populate customer details
-            txtCustomerName.Text = _currentInvoice.Customer.Name;
-            txtCompanyName.Text = _currentInvoice.Customer.CompanyName;
-            txtAddress.Text = _currentInvoice.Customer.Address;
-            txtTel.Text = _currentInvoice.Customer.Phone;
-            txtEmail.Text = _currentInvoice.Customer.Email;
-
-            // Populate items
-            _itemsTable.Clear();
-            foreach (var item in _currentInvoice.Items)
+            try
             {
-                _itemsTable.Rows.Add(
-                    item.Description,
-                    item.CheckIn,
-                    item.CheckOut,
-                    item.NumberOfNights,
-                    item.PricePerNight,
-                    item.Total
-                );
-            }
+                // Populate invoice details
+                dtpInvoiceDate.Value = _currentInvoice.InvoiceDate;
+                txtInvoiceNumber.Text = _currentInvoice.InvoiceNumber;
 
-            if (_itemsTable.Rows.Count == 0)
+                // Populate customer details
+                txtCustomerName.Text = _currentInvoice.Customer.Name;
+                txtCompanyName.Text = _currentInvoice.Customer.CompanyName;
+                txtAddress.Text = _currentInvoice.Customer.Address;
+                txtTel.Text = _currentInvoice.Customer.Phone;
+                txtEmail.Text = _currentInvoice.Customer.Email;
+
+                // Populate items
+                _itemsTable.Clear();
+                foreach (var item in _currentInvoice.Items)
+                {
+                    _itemsTable.Rows.Add(
+                        item.Description,
+                        item.CheckIn,
+                        item.CheckOut,
+                        item.NumberOfNights,
+                        item.PricePerNight,
+                        item.Total
+                    );
+                }
+
+                if (_itemsTable.Rows.Count == 0)
+                {
+                    AddEmptyRow();
+                }
+
+                // Populate food items
+                _foodItemsTable.Clear();
+                foreach (var foodItem in _currentInvoice.FoodItems)
+                {
+                    _foodItemsTable.Rows.Add(
+                        foodItem.Date,
+                        foodItem.Description,
+                        foodItem.Note,
+                        foodItem.Price
+                    );
+                }
+
+                // Populate totals
+                txtTaxRate.Text = (_currentInvoice.TaxRate * 100).ToString("F2");
+                txtOther.Text = CurrencyHelper.FormatShort(_currentInvoice.Other);
+                txtPaid.Text = CurrencyHelper.FormatShort(_currentInvoice.Paid);
+                txtAdvance.Text = CurrencyHelper.FormatShort(_currentInvoice.Advance);
+                txtNotes.Text = _currentInvoice.Notes;
+
+                CalculateTotals();
+                InitializeCurrencySelector();
+                RefreshCurrencyDisplays();
+            }
+            finally
             {
-                AddEmptyRow();
+                // Re-enable auto-save after form is populated
+                _suppressAutoSave = false;
             }
-
-            // Populate food items
-            _foodItemsTable.Clear();
-            foreach (var foodItem in _currentInvoice.FoodItems)
-            {
-                _foodItemsTable.Rows.Add(
-                    foodItem.Description,
-                    foodItem.Note,
-                    foodItem.Price
-                );
-            }
-
-            // Populate totals
-            txtTaxRate.Text = (_currentInvoice.TaxRate * 100).ToString("F2");
-            txtOther.Text = CurrencyHelper.FormatShort(_currentInvoice.Other);
-            txtPaid.Text = CurrencyHelper.FormatShort(_currentInvoice.Paid);
-            txtAdvance.Text = CurrencyHelper.FormatShort(_currentInvoice.Advance);
-            txtNotes.Text = _currentInvoice.Notes;
-
-            CalculateTotals();
-            InitializeCurrencySelector();
-            RefreshCurrencyDisplays();
         }
 
         private void UpdateInvoiceFromForm()
@@ -988,6 +1150,7 @@ namespace HaranInvoiceSoftware.Forms
                 {
                     var foodItem = new FoodItem
                     {
+                        Date = row["Date"] != DBNull.Value ? (DateTime)row["Date"] : DateTime.Now,
                         Description = row["Description"].ToString(),
                         Note = row["Note"] != DBNull.Value ? row["Note"].ToString() : "",
                         Price = row["Price"] != DBNull.Value ? Convert.ToDecimal(row["Price"]) : 0m
@@ -1064,6 +1227,9 @@ namespace HaranInvoiceSoftware.Forms
 
         private void AutoSave()
         {
+            // Don't auto-save if suppressed (e.g., during form population)
+            if (_suppressAutoSave) return;
+
             try
             {
                 UpdateInvoiceFromForm();
@@ -1084,43 +1250,54 @@ namespace HaranInvoiceSoftware.Forms
                 return; // User cancelled
             }
 
-            _currentInvoice = new Invoice();
-            UpdateCompanyInfo(); // Ensure company info is current
-            _itemsTable.Clear();
-            AddEmptyRow();
+            // Suppress auto-save while creating new invoice
+            _suppressAutoSave = true;
 
-            // Generate automatic invoice number based on datetime with seconds
-            string invoiceNumber = GenerateInvoiceNumber();
+            try
+            {
+                _currentInvoice = new Invoice();
+                UpdateCompanyInfo(); // Ensure company info is current
+                _itemsTable.Clear();
+                AddEmptyRow();
 
-            // Clear form fields
-            txtCustomerName.Clear();
-            txtCompanyName.Clear();
-            txtAddress.Clear();
-            txtTel.Clear();
-            txtEmail.Clear();
-            txtInvoiceNumber.Text = invoiceNumber;
-            txtTaxRate.Text = "8.00";
-            txtOther.Text = "0.00";
-            txtPaid.Text = "0.00";
-            txtAdvance.Text = "0.00";
-            txtNotes.Clear();
-            dtpInvoiceDate.Value = DateTime.Now;
+                // Generate automatic invoice number based on datetime with seconds
+                string invoiceNumber = GenerateInvoiceNumber();
 
-            // Clear calculated totals
-            string code = _currentInvoice?.CurrencyCode ?? (cboCurrency?.SelectedItem?.ToString() ?? "LKR");
-            _currentInvoice.CurrencyCode = code;
-            txtSubtotal.Text = CurrencyHelper.Format(0, code);
-            txtTaxes.Text = CurrencyHelper.Format(0, code);
-            txtTotal.Text = CurrencyHelper.Format(0, code);
-            txtTotalDue.Text = CurrencyHelper.Format(0, code);
+                // Clear form fields
+                txtCustomerName.Clear();
+                txtCompanyName.Clear();
+                txtAddress.Clear();
+                txtTel.Clear();
+                txtEmail.Clear();
+                txtInvoiceNumber.Text = invoiceNumber;
+                txtTaxRate.Text = "8.00";
+                txtOther.Text = "0.00";
+                txtPaid.Text = "0.00";
+                txtAdvance.Text = "0.00";
+                txtNotes.Clear();
+                dtpInvoiceDate.Value = DateTime.Now;
 
-            // Set the filename for this invoice
-            _currentInvoice.InvoiceNumber = invoiceNumber;
-            _currentInvoice.FileName = fileName;
-            _currentInvoice.CurrencyCode = cboCurrency?.SelectedItem?.ToString() ?? "LKR";
+                // Clear calculated totals
+                string code = _currentInvoice?.CurrencyCode ?? (cboCurrency?.SelectedItem?.ToString() ?? "LKR");
+                _currentInvoice.CurrencyCode = code;
+                txtSubtotal.Text = CurrencyHelper.Format(0, code);
+                txtTaxes.Text = CurrencyHelper.Format(0, code);
+                txtTotal.Text = CurrencyHelper.Format(0, code);
+                txtTotalDue.Text = CurrencyHelper.Format(0, code);
 
-            CalculateTotals();
-            RefreshCurrencyDisplays();
+                // Set the filename for this invoice
+                _currentInvoice.InvoiceNumber = invoiceNumber;
+                _currentInvoice.FileName = fileName;
+                _currentInvoice.CurrencyCode = cboCurrency?.SelectedItem?.ToString() ?? "LKR";
+
+                CalculateTotals();
+                RefreshCurrencyDisplays();
+            }
+            finally
+            {
+                // Re-enable auto-save after creating new invoice
+                _suppressAutoSave = false;
+            }
         }
 
         private void BtnLoad_Click(object sender, EventArgs e)
