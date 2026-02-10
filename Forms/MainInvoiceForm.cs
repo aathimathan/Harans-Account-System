@@ -270,6 +270,8 @@ namespace HaranInvoiceSoftware.Forms
             btnLoad.Click += BtnLoad_Click;
             btnSave.Click += BtnSave_Click;
             btnExportPdf.Click += BtnExportPdf_Click;
+            btnAiXmlGuide.Click += BtnAiXmlGuide_Click;
+            btnPasteXml.Click += BtnPasteXml_Click;
 
             // Auto-save events
             txtCustomerName.TextChanged += (s, e) => AutoSave();
@@ -310,6 +312,28 @@ namespace HaranInvoiceSoftware.Forms
 
             // Setup context menus
             SetupContextMenus();
+        }
+
+        private void BtnAiXmlGuide_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new AiXmlGuideForm())
+            {
+                dlg.ShowDialog(this);
+            }
+        }
+
+        private void BtnPasteXml_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new PasteXmlForm(_dataService))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK && dlg.LoadedInvoice != null)
+                {
+                    _currentInvoice = dlg.LoadedInvoice;
+                    UpdateCompanyInfo(); // keep existing app behavior
+                    PopulateForm();
+                    MessageBox.Show("XML loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
         private DateTimePicker _dateTimePicker;
@@ -1250,6 +1274,16 @@ namespace HaranInvoiceSoftware.Forms
                 return; // User cancelled
             }
 
+            // Commit any pending edits so the bound DataTables can be cleared reliably
+            try
+            {
+                dgvItems?.EndEdit();
+                dgvFoodItems?.EndEdit();
+                dgvItems?.CancelEdit();
+                dgvFoodItems?.CancelEdit();
+            }
+            catch { /* ignore UI edit state issues */ }
+
             // Suppress auto-save while creating new invoice
             _suppressAutoSave = true;
 
@@ -1258,7 +1292,17 @@ namespace HaranInvoiceSoftware.Forms
                 _currentInvoice = new Invoice();
                 UpdateCompanyInfo(); // Ensure company info is current
                 _itemsTable.Clear();
-                AddEmptyRow();
+                _foodItemsTable.Clear();
+
+                // Hide any active in-grid date pickers
+                if (_dateTimePicker != null) _dateTimePicker.Visible = false;
+                if (_foodDateTimePicker != null) _foodDateTimePicker.Visible = false;
+
+                // Clear any current selection/cell focus to avoid showing old selection
+                dgvItems.ClearSelection();
+                dgvFoodItems.ClearSelection();
+                dgvItems.CurrentCell = null;
+                dgvFoodItems.CurrentCell = null;
 
                 // Generate automatic invoice number based on datetime with seconds
                 string invoiceNumber = GenerateInvoiceNumber();

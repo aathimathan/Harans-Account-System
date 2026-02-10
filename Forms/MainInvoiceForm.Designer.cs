@@ -71,6 +71,8 @@ namespace HaranInvoiceSoftware.Forms
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnExportPdf = new System.Windows.Forms.Button();
+            this.btnAiXmlGuide = new System.Windows.Forms.Button();
+            this.btnPasteXml = new System.Windows.Forms.Button();
             this.panelHeader.SuspendLayout();
             this.panelCustomer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvItems)).BeginInit();
@@ -623,6 +625,8 @@ namespace HaranInvoiceSoftware.Forms
             this.panelButtons.Controls.Add(this.btnLoad);
             this.panelButtons.Controls.Add(this.btnSave);
             this.panelButtons.Controls.Add(this.btnExportPdf);
+            this.panelButtons.Controls.Add(this.btnAiXmlGuide);
+            this.panelButtons.Controls.Add(this.btnPasteXml);
             this.panelButtons.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panelButtons.Location = new System.Drawing.Point(0, 1030);
             this.panelButtons.Name = "panelButtons";
@@ -684,6 +688,34 @@ namespace HaranInvoiceSoftware.Forms
             this.btnExportPdf.TabIndex = 18;
             this.btnExportPdf.Text = "Export PDF";
             this.btnExportPdf.UseVisualStyleBackColor = false;
+            // 
+            // btnAiXmlGuide
+            // 
+            this.btnAiXmlGuide.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(150)))), ((int)(((byte)(243)))));
+            this.btnAiXmlGuide.FlatAppearance.BorderSize = 0;
+            this.btnAiXmlGuide.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAiXmlGuide.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.btnAiXmlGuide.ForeColor = System.Drawing.Color.White;
+            this.btnAiXmlGuide.Location = new System.Drawing.Point(590, 20);
+            this.btnAiXmlGuide.Name = "btnAiXmlGuide";
+            this.btnAiXmlGuide.Size = new System.Drawing.Size(140, 40);
+            this.btnAiXmlGuide.TabIndex = 19;
+            this.btnAiXmlGuide.Text = "AI XML Guide";
+            this.btnAiXmlGuide.UseVisualStyleBackColor = false;
+            // 
+            // btnPasteXml
+            // 
+            this.btnPasteXml.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(152)))), ((int)(((byte)(0)))));
+            this.btnPasteXml.FlatAppearance.BorderSize = 0;
+            this.btnPasteXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPasteXml.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.btnPasteXml.ForeColor = System.Drawing.Color.White;
+            this.btnPasteXml.Location = new System.Drawing.Point(750, 20);
+            this.btnPasteXml.Name = "btnPasteXml";
+            this.btnPasteXml.Size = new System.Drawing.Size(140, 40);
+            this.btnPasteXml.TabIndex = 20;
+            this.btnPasteXml.Text = "Paste XML";
+            this.btnPasteXml.UseVisualStyleBackColor = false;
             // 
             // MainInvoiceForm
             // 
@@ -777,6 +809,8 @@ namespace HaranInvoiceSoftware.Forms
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnExportPdf;
+        private System.Windows.Forms.Button btnAiXmlGuide;
+        private System.Windows.Forms.Button btnPasteXml;
         private System.Windows.Forms.Label lblCurrency;
         private System.Windows.Forms.ComboBox cboCurrency;
     }
