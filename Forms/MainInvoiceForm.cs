@@ -270,6 +270,7 @@ namespace HaranInvoiceSoftware.Forms
             btnLoad.Click += BtnLoad_Click;
             btnSave.Click += BtnSave_Click;
             btnExportPdf.Click += BtnExportPdf_Click;
+            btnGenerateReceipt.Click += BtnGenerateReceipt_Click;
             btnAiXmlGuide.Click += BtnAiXmlGuide_Click;
             btnPasteXml.Click += BtnPasteXml_Click;
 
@@ -1443,6 +1444,59 @@ namespace HaranInvoiceSoftware.Forms
                 }
 
                 return string.Empty; // User cancelled
+            }
+        }
+
+        private void BtnGenerateReceipt_Click(object sender, EventArgs e)
+        {
+            // Ensure form values are committed to the invoice model first
+            UpdateInvoiceFromForm();
+
+            // Check if payment has been recorded on the invoice
+            if (_currentInvoice == null || _currentInvoice.Paid <= 0)
+            {
+                MessageBox.Show("Please record a payment amount first before generating a receipt.", "No Payment", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (var dialog = new SaveFileDialog())
+            {
+                dialog.Filter = "PDF files (*.pdf)|*.pdf";
+                dialog.DefaultExt = "pdf";
+                dialog.FileName = $"Receipt_{_currentInvoice.InvoiceNumber}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        UpdateInvoiceFromForm();
+
+                        // Stamp each receipt with the actual generation/payment date.
+                        _currentInvoice.PaymentDate = DateTime.Now;
+
+                        decimal receiptPaymentAmount = _currentInvoice.Paid;
+                        _pdfService.ExportReceiptToPdf(_currentInvoice, dialog.FileName, receiptPaymentAmount);
+                        _currentInvoice.LastReceiptPaidTotal = _currentInvoice.Paid;
+                        MessageBox.Show("Receipt generated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Ask if user wants to open the receipt
+                        if (MessageBox.Show("Would you like to open the receipt?", "Open Receipt", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = dialog.FileName,
+                                UseShellExecute = true
+                            });
+                        }
+
+                        // Auto-save the invoice with the payment date
+                        AutoSave();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error generating receipt: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
     }

@@ -465,5 +465,190 @@ namespace HaranInvoiceSoftware.Services
 
             document.Add(totalsTable);
         }
+
+        public void ExportReceiptToPdf(Invoice invoice, string filePath, decimal currentPaymentAmount)
+        {
+            if (invoice.Paid <= 0)
+            {
+                throw new Exception("Cannot generate receipt: no payment amount recorded.");
+            }
+
+            try
+            {
+                using (var writer = new PdfWriter(filePath))
+                {
+                    using (var pdf = new PdfDocument(writer))
+                    {
+                        pdf.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4);
+                        var document = new Document(pdf);
+                        document.SetMargins(20, 20, 20, 20);
+
+                        // Add header with company information
+                        AddHeader(document, invoice.Company);
+
+                        // Add receipt title and details
+                        AddReceiptHeader(document, invoice);
+
+                        // Add customer information
+                        AddCustomerInfo(document, invoice.Customer);
+
+                        // Invoice reference section
+                        AddPaymentDetails(document, invoice);
+
+                        // Add totals section showing payment breakup
+                        AddReceiptTotalsSection(document, invoice, currentPaymentAmount);
+
+                        // Add payment confirmation message
+                        AddPaymentConfirmation(document, invoice, currentPaymentAmount);
+
+                        document.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error exporting receipt to PDF: {ex.Message}");
+            }
+        }
+
+        private void AddReceiptHeader(Document document, Invoice invoice)
+        {
+            var headerTable = new Table(2).UseAllAvailableWidth();
+            headerTable.SetMarginBottom(15);
+
+            // RECEIPT title - prominent
+            var receiptTitle = new Cell()
+                .Add(new Paragraph("RECEIPT")
+                    .SetFontSize(24)
+                    .SetBold()
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetFontColor(ColorConstants.BLACK))
+                .SetBorder(Border.NO_BORDER)
+                .SetVerticalAlignment(VerticalAlignment.BOTTOM);
+
+            // Receipt details - aligned right
+            var receiptDetails = new Cell()
+                .Add(new Paragraph($"RECEIPT DATE: {(invoice.PaymentDate ?? DateTime.Now):dd-MMM-yyyy}")
+                    .SetFontSize(10)
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetMarginBottom(3))
+                .Add(new Paragraph($"INVOICE #: {invoice.InvoiceNumber}")
+                    .SetFontSize(10)
+                    .SetBold()
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetMarginBottom(3))
+                .Add(new Paragraph($"INVOICE DATE: {invoice.InvoiceDate:dd-MMM-yyyy}")
+                    .SetFontSize(9)
+                    .SetTextAlignment(TextAlignment.RIGHT))
+                .SetBorder(Border.NO_BORDER)
+                .SetVerticalAlignment(VerticalAlignment.BOTTOM);
+
+            headerTable.AddCell(receiptTitle);
+            headerTable.AddCell(receiptDetails);
+
+            document.Add(headerTable);
+        }
+
+        private void AddPaymentDetails(Document document, Invoice invoice)
+        {
+            var paymentSection = new Paragraph("PAYMENT REFERENCE")
+                .SetFontSize(11)
+                .SetBold()
+                .SetMarginTop(20)
+                .SetMarginBottom(10);
+
+            document.Add(paymentSection);
+
+            var detailsTable = new Table(2).UseAllAvailableWidth();
+            detailsTable.SetMarginBottom(15);
+            detailsTable.SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f));
+
+            AddTableRow(detailsTable, "Invoice Number:", invoice.InvoiceNumber);
+            AddTableRow(detailsTable, "Invoice Date:", invoice.InvoiceDate.ToString("dd-MMM-yyyy"));
+            AddTableRow(detailsTable, "Payment Date:", (invoice.PaymentDate ?? DateTime.Now).ToString("dd-MMM-yyyy"));
+            AddTableRow(detailsTable, "Bill To:", invoice.Customer.Name);
+
+            document.Add(detailsTable);
+        }
+
+        private void AddTableRow(Table table, string label, string value)
+        {
+            var labelCell = new Cell()
+                .Add(new Paragraph(label).SetFontSize(9).SetBold())
+                .SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                .SetPadding(6)
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f));
+
+            var valueCell = new Cell()
+                .Add(new Paragraph(value).SetFontSize(9))
+                .SetPadding(6)
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f));
+
+            table.AddCell(labelCell);
+            table.AddCell(valueCell);
+        }
+
+        private void AddReceiptTotalsSection(Document document, Invoice invoice, decimal currentPaymentAmount)
+        {
+            var totalsSection = new Paragraph("PAYMENT SUMMARY")
+                .SetFontSize(11)
+                .SetBold()
+                .SetMarginTop(20)
+                .SetMarginBottom(10);
+
+            document.Add(totalsSection);
+
+            var totalsTable = new Table(new float[] { 3, 2 }).UseAllAvailableWidth();
+            totalsTable.SetMarginBottom(15);
+
+            // Original invoice total
+            totalsTable.AddCell(new Cell().Add(new Paragraph("Invoice Total").SetFontSize(10))
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                .SetPadding(6).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            totalsTable.AddCell(new Cell().Add(new Paragraph(CurrencyHelper.Format(invoice.Total, invoice.CurrencyCode ?? "LKR")).SetFontSize(10))
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                .SetPadding(6).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+
+            // Previous payments
+            decimal previousPayments = Math.Max(0m, invoice.Paid - currentPaymentAmount);
+            if (previousPayments > 0)
+            {
+                totalsTable.AddCell(new Cell().Add(new Paragraph("Previous Payments").SetFontSize(9))
+                    .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                    .SetPadding(5).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+                totalsTable.AddCell(new Cell().Add(new Paragraph(CurrencyHelper.Format(previousPayments, invoice.CurrencyCode ?? "LKR")).SetFontSize(9))
+                    .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                    .SetPadding(5).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            }
+
+            // Current payment
+            totalsTable.AddCell(new Cell().Add(new Paragraph("PAYMENT RECEIVED").SetFontSize(10).SetBold())
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                .SetPadding(6).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+            totalsTable.AddCell(new Cell().Add(new Paragraph(CurrencyHelper.Format(currentPaymentAmount, invoice.CurrencyCode ?? "LKR")).SetFontSize(10).SetBold())
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f)).SetTextAlignment(TextAlignment.RIGHT)
+                .SetPadding(6).SetBackgroundColor(ColorConstants.LIGHT_GRAY));
+
+            document.Add(totalsTable);
+        }
+
+        private void AddPaymentConfirmation(Document document, Invoice invoice, decimal currentPaymentAmount)
+        {
+            document.Add(new Paragraph().SetMarginBottom(15));
+
+            var confirmationBox = new Cell()
+                .Add(new Paragraph("PAYMENT CONFIRMATION").SetFontSize(11).SetBold().SetMarginBottom(5))
+                .Add(new Paragraph($"A payment of {CurrencyHelper.Format(currentPaymentAmount, invoice.CurrencyCode ?? "LKR")} has been received on {(invoice.PaymentDate ?? DateTime.Now):dd-MMM-yyyy}.").SetFontSize(9).SetMarginBottom(5))
+                .Add(new Paragraph($"Thank you for your payment.").SetFontSize(9))
+                .SetBorder(new SolidBorder(ColorConstants.BLACK, 0.5f))
+                .SetPadding(12)
+                .SetBackgroundColor(ColorConstants.LIGHT_GRAY);
+
+            var confirmationTable = new Table(1).UseAllAvailableWidth();
+            confirmationTable.AddCell(confirmationBox);
+            confirmationTable.SetMarginTop(20);
+
+            document.Add(confirmationTable);
+        }
     }
 }

@@ -71,6 +71,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnExportPdf = new System.Windows.Forms.Button();
+            this.btnGenerateReceipt = new System.Windows.Forms.Button();
             this.btnAiXmlGuide = new System.Windows.Forms.Button();
             this.btnPasteXml = new System.Windows.Forms.Button();
             this.panelHeader.SuspendLayout();
@@ -625,6 +626,7 @@ namespace HaranInvoiceSoftware.Forms
             this.panelButtons.Controls.Add(this.btnLoad);
             this.panelButtons.Controls.Add(this.btnSave);
             this.panelButtons.Controls.Add(this.btnExportPdf);
+            this.panelButtons.Controls.Add(this.btnGenerateReceipt);
             this.panelButtons.Controls.Add(this.btnAiXmlGuide);
             this.panelButtons.Controls.Add(this.btnPasteXml);
             this.panelButtons.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -689,6 +691,20 @@ namespace HaranInvoiceSoftware.Forms
             this.btnExportPdf.Text = "Export PDF";
             this.btnExportPdf.UseVisualStyleBackColor = false;
             // 
+            // btnGenerateReceipt
+            // 
+            this.btnGenerateReceipt.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(76)))), ((int)(((byte)(175)))), ((int)(((byte)(80)))));
+            this.btnGenerateReceipt.FlatAppearance.BorderSize = 0;
+            this.btnGenerateReceipt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGenerateReceipt.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.btnGenerateReceipt.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateReceipt.Location = new System.Drawing.Point(580, 20);
+            this.btnGenerateReceipt.Name = "btnGenerateReceipt";
+            this.btnGenerateReceipt.Size = new System.Drawing.Size(140, 40);
+            this.btnGenerateReceipt.TabIndex = 18;
+            this.btnGenerateReceipt.Text = "Generate Receipt";
+            this.btnGenerateReceipt.UseVisualStyleBackColor = false;
+            // 
             // btnAiXmlGuide
             // 
             this.btnAiXmlGuide.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(150)))), ((int)(((byte)(243)))));
@@ -696,7 +712,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnAiXmlGuide.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAiXmlGuide.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.btnAiXmlGuide.ForeColor = System.Drawing.Color.White;
-            this.btnAiXmlGuide.Location = new System.Drawing.Point(590, 20);
+            this.btnAiXmlGuide.Location = new System.Drawing.Point(730, 20);
             this.btnAiXmlGuide.Name = "btnAiXmlGuide";
             this.btnAiXmlGuide.Size = new System.Drawing.Size(140, 40);
             this.btnAiXmlGuide.TabIndex = 19;
@@ -710,7 +726,7 @@ namespace HaranInvoiceSoftware.Forms
             this.btnPasteXml.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPasteXml.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.btnPasteXml.ForeColor = System.Drawing.Color.White;
-            this.btnPasteXml.Location = new System.Drawing.Point(750, 20);
+            this.btnPasteXml.Location = new System.Drawing.Point(880, 20);
             this.btnPasteXml.Name = "btnPasteXml";
             this.btnPasteXml.Size = new System.Drawing.Size(140, 40);
             this.btnPasteXml.TabIndex = 20;
@@ -809,6 +825,7 @@ namespace HaranInvoiceSoftware.Forms
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnExportPdf;
+        private System.Windows.Forms.Button btnGenerateReceipt;
         private System.Windows.Forms.Button btnAiXmlGuide;
         private System.Windows.Forms.Button btnPasteXml;
         private System.Windows.Forms.Label lblCurrency;
