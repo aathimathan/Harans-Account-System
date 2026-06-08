@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HaranInvoiceSoftware")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+402094419e2837f3548122ee240935496097f08c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b249346ed0de776077db4de2e4c34c6612c4634")]
 [assembly: System.Reflection.AssemblyProductAttribute("HaranInvoiceSoftware")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HaranInvoiceSoftware")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
