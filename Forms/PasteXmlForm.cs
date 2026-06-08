@@ -35,7 +35,9 @@ namespace HaranInvoiceSoftware.Forms
             var lbl = new Label
             {
                 AutoSize = false,
-                Text = "Paste invoice XML below. The app will try to load it, then save a new XML file into the Invoices folder.",
+                Text = _dataService.IsUsingMySql
+                    ? "Paste invoice XML below. The app will import it and save it into MySQL."
+                    : "Paste invoice XML below. The app will try to load it, then save a new XML file into the Invoices folder.",
                 Location = new Point(16, 14),
                 Size = new Size(ClientSize.Width - 32, 44),
                 ForeColor = Color.FromArgb(37, 42, 64)
@@ -115,11 +117,18 @@ namespace HaranInvoiceSoftware.Forms
                 if (invoice.FoodItems == null) invoice.FoodItems = new System.Collections.Generic.List<FoodItem>();
                 if (string.IsNullOrWhiteSpace(invoice.CurrencyCode)) invoice.CurrencyCode = "LKR";
 
-                // Save into the app's own XML format with a safe filename
-                string invoicesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Invoices");
-                Directory.CreateDirectory(invoicesDir);
-                string safeFileName = $"Invoice_Pasted_{DateTime.Now:yyyyMMdd_HHmmss}.xml";
-                invoice.FileName = Path.Combine(invoicesDir, safeFileName);
+                if (!_dataService.IsUsingMySql)
+                {
+                    // Save into the app's own XML format with a safe filename.
+                    string invoicesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Invoices");
+                    Directory.CreateDirectory(invoicesDir);
+                    string safeFileName = $"Invoice_Pasted_{DateTime.Now:yyyyMMdd_HHmmss}.xml";
+                    invoice.FileName = Path.Combine(invoicesDir, safeFileName);
+                }
+                else
+                {
+                    invoice.FileName = string.Empty;
+                }
 
                 // Recalculate totals in case values were missing
                 invoice.CalculateTotals();

@@ -17,7 +17,7 @@
 
 ### 3. **Updated Company Information**
 - Company name set to "NALLUR RESIDENCE"
-- Address: "956 Point Pedro Rd, Nallur Jaffna"
+- Address: "656 Point Pedro Rd, Nallur Jaffna"
 - All branding updated throughout the system
 
 ## 📋 Logo Setup Instructions

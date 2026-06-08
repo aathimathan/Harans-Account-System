@@ -19,7 +19,7 @@ Use the `Currency` drop-down in the top-right header of the invoice screen to to
 
 Changing the currency updates all displayed totals, item prices, food item prices, and the PDF export formatting. Only the symbol changes; no exchange-rate conversion is applied (values are treated as-is). Editable numeric fields (Paid, Other, Advance) remain without symbols for easy input.
 - **PDF Generation**: iText7
-- **Data Storage**: XML Serialization
+- **Data Storage**: MySQL (with XML fallback)
 - **UI**: Windows Forms with modern styling
 
 ## Installation
@@ -85,10 +85,22 @@ HaranInvoiceSoftware/
 
 ## Data Storage
 
-- Invoice data is stored in XML format in the `Invoices/` folder
-- Each invoice is saved as a separate XML file
-- The application remembers the last invoice you worked on
-- XML files can be manually backed up or shared
+The app now supports MySQL as the primary store.
+
+- On startup, it creates the configured MySQL database/tables automatically (if permissions allow).
+- Existing XML files in `Invoices/` are imported one time into MySQL.
+- If MySQL is unavailable, the app falls back to XML files in `Invoices/`.
+
+### MySQL Environment Variables
+
+Set these before running the app:
+
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `3306`)
+- `DB_NAME` (default: `accounts`)
+- `DB_USER` (default: `root`)
+- `DB_PASS` (default: empty)
+- `DB_SSL_MODE` (optional, default: `None`)
 
 ## Customization
 

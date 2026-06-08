@@ -53,12 +53,7 @@ Your PDF invoices are now perfectly optimized for **A4 paper size** and designed
 - ✅ **Consistent margins**
 
 ### 🎨 **Visual Design Maintained:**
-- ✅ **Nallur Residence logo** (scaled appropriately)
-- ✅ **Professional typography**
-- ✅ **Clean borders and alignment**
-- ✅ **Minimalist color scheme**
-- ✅ **Business-appropriate layout**
-
+ ✅ **Address:** 656 Nallur Residence
 ### 🚀 **Ready to Use:**
 Your invoice system now generates **perfectly formatted A4 PDFs** that:
 - **Print beautifully** on any standard A4 printer

@@ -39,7 +39,7 @@ Your beautiful Nallur Residence logo has been **successfully copied and integrat
 
 ### 🏠 **Company Branding:**
 - Company: **NALLUR RESIDENCE**
-- Address: **956 Point Pedro Rd, Nallur Jaffna**
+- Address: **656 Point Pedro Rd, Nallur Jaffna**
 - Phone: **077-244-6241**
 - Email: **harangovindaraj@gmail.com**
 

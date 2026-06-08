@@ -125,7 +125,7 @@ namespace HaranInvoiceSoftware.Forms
             this.lblCompanyAddress.Name = "lblCompanyAddress";
             this.lblCompanyAddress.Size = new System.Drawing.Size(241, 21);
             this.lblCompanyAddress.TabIndex = 1;
-            this.lblCompanyAddress.Text = "956 Point Pedro Rd, Nallur Jaffna";
+            this.lblCompanyAddress.Text = "656 Point Pedro Rd, Nallur Jaffna";
             // 
             // lblCompanyPhone
             // 

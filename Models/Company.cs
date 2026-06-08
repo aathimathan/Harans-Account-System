@@ -13,7 +13,7 @@ namespace HaranInvoiceSoftware.Models
         public string RegistrationNumber { get; set; } = "PV 00301818";
         
         [XmlElement]
-        public string Address { get; set; } = "956 Point Pedro Rd, Nallur Jaffna";
+        public string Address { get; set; } = "656 Point Pedro Rd, Nallur Jaffna";
         
         [XmlElement]
         public string Phone { get; set; } = "077-244-6241";

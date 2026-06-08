@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using HaranInvoiceSoftware.Models;
 using HaranInvoiceSoftware.Services;
@@ -1268,11 +1269,15 @@ namespace HaranInvoiceSoftware.Forms
 
         private void BtnNew_Click(object sender, EventArgs e)
         {
-            // Ask user for filename first
-            string fileName = GetNewInvoiceFileName();
-            if (string.IsNullOrEmpty(fileName))
+            string fileName = string.Empty;
+            if (!_dataService.IsUsingMySql)
             {
-                return; // User cancelled
+                // In XML mode, ask user for file name first.
+                fileName = GetNewInvoiceFileName();
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    return;
+                }
             }
 
             // Commit any pending edits so the bound DataTables can be cleared reliably
@@ -1347,6 +1352,29 @@ namespace HaranInvoiceSoftware.Forms
 
         private void BtnLoad_Click(object sender, EventArgs e)
         {
+            if (_dataService.IsUsingMySql)
+            {
+                string invoiceNumber = PromptForInvoiceNumber();
+                if (string.IsNullOrWhiteSpace(invoiceNumber))
+                {
+                    return;
+                }
+
+                try
+                {
+                    _currentInvoice = _dataService.LoadInvoice(invoiceNumber);
+                    UpdateCompanyInfo();
+                    PopulateForm();
+                    MessageBox.Show("Invoice loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                return;
+            }
+
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Filter = "XML files (*.xml)|*.xml";
@@ -1366,6 +1394,105 @@ namespace HaranInvoiceSoftware.Forms
                         MessageBox.Show($"Error loading invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
+            }
+        }
+
+        private string PromptForInvoiceNumber()
+        {
+            string[] invoiceNumbers;
+            try
+            {
+                invoiceNumbers = _dataService.GetRecentInvoiceNumbers(500);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading invoice list: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return string.Empty;
+            }
+
+            if (invoiceNumbers.Length == 0)
+            {
+                MessageBox.Show("No invoices were found in the database.", "No Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return string.Empty;
+            }
+
+            using (var dialog = new Form())
+            using (var txtFilter = new TextBox())
+            using (var listBox = new ListBox())
+            using (var btnOpen = new Button())
+            using (var btnCancel = new Button())
+            {
+                dialog.Text = "Load Invoice From Database";
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.MaximizeBox = false;
+                dialog.MinimizeBox = false;
+                dialog.ShowInTaskbar = false;
+                dialog.ClientSize = new Size(420, 500);
+
+                txtFilter.Location = new Point(12, 12);
+                txtFilter.Size = new Size(396, 30);
+                txtFilter.PlaceholderText = "Type to filter invoice numbers...";
+
+                listBox.Location = new Point(12, 50);
+                listBox.Size = new Size(396, 390);
+
+                btnOpen.Text = "Open";
+                btnOpen.Location = new Point(248, 450);
+                btnOpen.Size = new Size(75, 32);
+                btnOpen.DialogResult = DialogResult.OK;
+
+                btnCancel.Text = "Cancel";
+                btnCancel.Location = new Point(333, 450);
+                btnCancel.Size = new Size(75, 32);
+                btnCancel.DialogResult = DialogResult.Cancel;
+
+                dialog.Controls.Add(txtFilter);
+                dialog.Controls.Add(listBox);
+                dialog.Controls.Add(btnOpen);
+                dialog.Controls.Add(btnCancel);
+                dialog.AcceptButton = btnOpen;
+                dialog.CancelButton = btnCancel;
+
+                var invoiceList = invoiceNumbers.ToList();
+                void RefreshList(string filter)
+                {
+                    IEnumerable<string> filtered = invoiceList;
+                    if (!string.IsNullOrWhiteSpace(filter))
+                    {
+                        filtered = invoiceList.Where(n => n.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0);
+                    }
+
+                    listBox.BeginUpdate();
+                    listBox.Items.Clear();
+                    foreach (var invoiceNumber in filtered)
+                    {
+                        listBox.Items.Add(invoiceNumber);
+                    }
+                    listBox.EndUpdate();
+                    if (listBox.Items.Count > 0)
+                    {
+                        listBox.SelectedIndex = 0;
+                    }
+                }
+
+                RefreshList(string.Empty);
+                txtFilter.TextChanged += (sender, e) => RefreshList(txtFilter.Text);
+                listBox.DoubleClick += (sender, e) =>
+                {
+                    if (listBox.SelectedItem != null)
+                    {
+                        dialog.DialogResult = DialogResult.OK;
+                        dialog.Close();
+                    }
+                };
+
+                if (dialog.ShowDialog(this) == DialogResult.OK && listBox.SelectedItem != null)
+                {
+                    return listBox.SelectedItem.ToString() ?? string.Empty;
+                }
+
+                return string.Empty;
             }
         }
 

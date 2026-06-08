@@ -38,3 +38,4 @@ C:\Haran Invoice Software\obj\Debug\net8.0-windows\refint\HaranInvoiceSoftware.d
 C:\Haran Invoice Software\obj\Debug\net8.0-windows\HaranInvoiceSoftware.pdb
 C:\Haran Invoice Software\obj\Debug\net8.0-windows\HaranInvoiceSoftware.genruntimeconfig.cache
 C:\Haran Invoice Software\obj\Debug\net8.0-windows\ref\HaranInvoiceSoftware.dll
+C:\Haran Invoice Software\bin\Debug\net8.0-windows\MySqlConnector.dll
